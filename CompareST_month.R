@@ -256,11 +256,16 @@ abline(h=0)
 ###ALL the plots
 
 #Deforestation forcing
+# These numbers should be the reverse of albedo, i.e. -2 to 6 becomes -6 to 2
+l.max<-12
+l.min<--4
+span<-c(l.min, l.max)
+
 par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
-plot(STForce.avg.def, type='l', col='orange', ylim=c(-4, 8), lwd=2, main="Deforestation",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(STForce.avg.def, type='l', col='orange', ylim=span, lwd=2, main="Deforestation",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-4, to=8, by=3), at=seq(from=-4, to=8, by=3), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=4), at=seq(from=l.min, to=l.max, by=4), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 polygon(x=c(1:12,12:1),y=c(STForce.avg.def+1.96*uncertainty.def,rev(STForce.avg.def-1.96*uncertainty.def)),border=NA, col='palegoldenrod')
@@ -271,10 +276,10 @@ abline(h=0, col='red4', lty=2, lwd=3)
 
 #Comp shift forcing
 ylab<-expression(RF~(Wm^-2))
-plot(STForce.avg.comp, type='l', col='forest green', ylim=c(-4, 8), lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(STForce.avg.comp, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-4, to=8, by=3), at=seq(from=-4, to=8, by=3), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=4), at=seq(from=l.min, to=l.max, by=4), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 polygon(x=c(1:12,12:1),y=c(STForce.avg.comp+1.96*uncertainty.comp,rev(STForce.avg.comp-1.96*uncertainty.comp)),border=NA, col='darkseagreen1')

@@ -3,7 +3,7 @@ source('VegConvert_UTM.R')
 source('CalcSolar.R')
 
 #Cleanup unwanted bits from CalcSolar and VegConvert
-rm(list=setdiff(ls(), c("Months", "Months.insol")))
+rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code")))
 
 
 #Read in raw data
@@ -81,7 +81,7 @@ AlbForce.avg<-colMeans(AlbForce, na.rm=TRUE)
 
 #Calculate albedo forcings, monthly transmittance
 for (i in 1:12){
-Sun.dyn<-insol.avg[i]*((transmit.month[i])^2)
+Sun.dyn[i]<-insol.avg[i]*((transmit.month[i])^2)
 AlbForce.month[,i]<-insol.avg[i]*((transmit.month[i])^2)*d.alb.month[,i]*(-1)
 }
 AlbForce.month.avg<-colMeans(AlbForce.month, na.rm=TRUE)
@@ -90,6 +90,10 @@ AlbForce.month.avg<-colMeans(AlbForce.month, na.rm=TRUE)
 plot(AlbForce.avg, type='l', lwd=2)
 lines(AlbForce.month.avg, col='blue', lwd=2)
 legend(6,-2, legend=c('yearly','monthly'), col=c('black','blue'), lwd=2, cex=0.5)
+AlbForce.bku<-AlbForce #Set backup for yearly
+
+##SUPER KEY SET THIS###
+AlbForce<-AlbForce.month #Eventually should change this into a function but for now renaming so plots work
 
 ####Dummy net plot####
 plot(colMeans(-AlbForce, na.rm=TRUE),type='l',ylim=c(-4,0.5))
@@ -101,6 +105,7 @@ names(AlbForce.std)<-c("Lat","Lon","Jan","Feb","Mar","Apr","May","Jun","Jul","Au
 AlbForce.std[is.na(AlbForce.std)]<-9999
 write.csv(AlbForce.std,"AlbedoForcing_STD.csv")
 
+#####
 #Manually copied other forcings - needs to be automated!
 SToffset<-c(-0.922178822, -0.813981288, -0.287019643,  0.038124206,  1.313251843,
              2.424227792,  1.723607501,  1.194636428,  0.849527934, -0.009961376,
@@ -111,6 +116,7 @@ SToffset<-c(-0.922178822, -0.813981288, -0.287019643,  0.038124206,  1.313251843
 Snowoffset_approx<-c(0,0,0.48,2.67,0.078,0,0,0,0,0,0,0)
 SnowSToffset_approx<-c(0.3871,0.73988,0.70798,0.65542,0.14659,0,0,0,0,0,0.075639,0.19390)
 
+#Basic combined forcing plot
 plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-5,2.5))
 abline(h=0)
 lines(SToffset, col='red')
@@ -122,28 +128,33 @@ abline(h=0)
 ######
 
 ####Apply vegetation conversion subsetting to albedo####
-##Must run VegConvert_UTM first to get list.ind
+##Must run VegConvert_UTM first to get list.ind, poss, and convert.code
 
 var.set.force=matrix(nrow=12, ncol=26)
 var.set.alb=matrix(nrow=12, ncol=26)
 count.set=rep(0, length(poss))
 
+#remove NaNs (places missing either modern or historic veg) from convert.code
 convert.code.real<-convert.code[which(!is.na(convert.code))]
 
-for(j in 1:length(poss)){
-  AlbSet<-AlbForce[list.ind[[j]],]
-  AlbSet.alb<-d.alb.month[list.ind[[j]],]
-  count.set[j]<-length(list.ind[[j]])/length(which(convert.code.real!=0))#length(which(!is.na(convert.code)))
-  for (i in 1:ncol(AlbSet)){
-    var.set.force[i,j]<-sd(AlbSet[,i], na.rm=TRUE)
-    var.set.alb[i,j]<-sd(AlbSet.alb[,i], na.rm=TRUE)
+##This loop yields standard deviations (uncertainty) for each month of each conversion
+##These are then added (weighted by proportion of landscape having this conversion) to create uncertainty shading on plots
+##Necesary because a pooled sd would mistakenly assign variation (different forcings for differen landcovers) as error 
+for(j in 1:length(poss)){ #for each vegetation conversion...
+  AlbSet<-AlbForce[list.ind[[j]],] #Albset is the subset of pixels (forcings) that has that vegetation conversion. Each row a pixel, each column a month.
+  AlbSet.alb<-d.alb.month[list.ind[[j]],] #Albset.alb is the same thing but just for albedo change not forcing
+  count.set[j]<-length(list.ind[[j]])/length(which(convert.code.real!=0))#Proportion of all conversions that is the conversion of interest (for weighting)
+  for (i in 1:ncol(AlbSet)){  #For each months...
+    var.set.force[i,j]<-sd(AlbSet[,i], na.rm=TRUE) #Var.set.force column (vegetation conversion)i row (month) j is the SD of that conversion in that month
+    var.set.alb[i,j]<-sd(AlbSet.alb[,i], na.rm=TRUE) #Same thing for albedo rather than forcing.
   }
 }
 
-##Scale var.set by counts
-var.scl.force<-sweep(var.set.force,2,count.set,'*')
+##Scale var.set by counts. count.set is the portion of each conversion
+var.scl.force<-sweep(var.set.force,2,count.set,'*') 
 var.scl.alb<-sweep(var.set.alb,2,count.set,'*')
 
+#Label
 colnames(var.scl.force)<-poss
 
 #Sum across veg conversions
@@ -159,15 +170,19 @@ Deforest<-c(7:11,13,21,22,25)    #This one is EG, MX, or DC forest to C, M, or U
 Deforest.2<-c(-2,7:13,21,22,25)  #This one includes mosaic to urban and mosaic to crop
 Comp<-c(-1,3,4) #This one is E to MX, E to DC, or MX to DC
 
+#Pull forcings/uncertainties for deforestation
 AlbForce.def<-AlbForce.veg[which(AlbForce.veg[,13]%in%Deforest),]
 AlbForce.avg.def<-colMeans(AlbForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
 uncertainty.def<-rowSums(var.scl.def)
 
+#Set flexible plot limit params
 l.max<-4
 l.min<--12
 span<-c(l.min, l.max)
 
+##Actual plotting
+#RF for deforestation
 par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
 plot(AlbForce.avg.def, type='l', col='orange', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
@@ -181,11 +196,13 @@ polygon(x=c(1:12,12:1),y=c(AlbForce.avg.def+1.96*uncertainty.def,rev(AlbForce.av
 lines(AlbForce.avg.def,  col='orange', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 
+#Pull forcings/uncertainties for compshift
 AlbForce.comp<-AlbForce.veg[which(AlbForce.veg[,13]%in%Comp),]
 AlbForce.avg.comp<-colMeans(AlbForce.comp[,1:12], na.rm=TRUE)
 var.scl.comp<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Comp)]
 uncertainty.comp<-rowSums(var.scl.comp)
 
+#Plot RF for compshift
 par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
 plot(AlbForce.avg.comp, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
@@ -216,7 +233,7 @@ polygon(x=c(1:12,12:1),y=c(AlbedoChange+1.96*uncertainty.alb,rev(AlbedoChange-1.
 lines(AlbedoChange, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
 
-
+#Albedo RF plot
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2))
 plot(AlbForce.avg,type='l',ylim=c(-6,1), main='Albedo RF', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
@@ -232,6 +249,7 @@ polygon(x=c(1:12,12:1),y=c(AlbForce.avg+1.96*uncertainty.force,rev(AlbForce.avg-
 lines(AlbForce.avg, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
 
+#Not sure why these are here...
 wintermonths<-c(1:2, 12)
 springmonths<-c(3:5)
 summermonths<-c(6:8)

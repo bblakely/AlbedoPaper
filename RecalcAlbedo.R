@@ -46,8 +46,8 @@ AlbedoChange<-(colMeans(d.alb.month, na.rm=TRUE))
 #Ceres_unpack and CalcSolar need to have been run at this point
 AlbForce<-matrix(nrow=nrow(d.alb.month),ncol=12)
 Sun<-rep(0,12)
-insol.avg<-colMeans(Months.insol)
-transmit.avg<-colMeans(Months)
+insol.avg<-colMeans(Months.insol) #Months.insol is the insolation version of 'Months' below
+transmit.avg<-colMeans(Months) #Average regional monthly transmittance. 'Months' comes from calc solar; its the 10-yr avg monthly transmittance for each pixel
 
 trans.winter<-mean(transmit.avg[c(1,2,12)])
 trans.spring<-mean(transmit.avg[c(3:5)])

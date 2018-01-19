@@ -1,6 +1,6 @@
 ##Run VegConvert_UTM, Ceres_unpack, and CalcSolar before starting
 source('VegConvert_UTM.R')
-source('Ceres_unpack.R')
+#source('Ceres_unpack.R')##
 source('CalcSolar.R')
 
 #Read in raw data

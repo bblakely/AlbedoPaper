@@ -1,14 +1,18 @@
 ##Run VegConvert_UTM, Ceres_unpack, and CalcSolar before starting
 source('VegConvert_UTM.R')
-#source('Ceres_unpack.R')
 source('CalcSolar.R')
+
+#Cleanup unwanted bits from CalcSolar and VegConvert
+rm(list=setdiff(ls(), c("Months", "Months.insol")))
+
 
 #Read in raw data
 ModernAlbRaw<-read.csv('Albedo_Modern1.csv',skip=7)
 PaleoAlbRaw<-read.csv('Albedo_Paleo.csv',skip=7)
 
+#Pull georef
 Georef<-ModernAlbRaw[2:nrow(ModernAlbRaw), 5:6]
-#Remove comment line
+#Remove comment line, unwanted metadata columns
 ModernAlb<-ModernAlbRaw[2:nrow(ModernAlbRaw),7:52]
 PaleoAlb<-PaleoAlbRaw[2:nrow(PaleoAlbRaw),7:52]
 
@@ -16,13 +20,17 @@ PaleoAlb<-PaleoAlbRaw[2:nrow(PaleoAlbRaw),7:52]
 ModernAlb[PaleoAlb==9999]<-9999
 PaleoAlb[ModernAlb==9999]<-9999
 
+#NaN so operations missing data yield NaNs
 PaleoAlb[PaleoAlb==9999]<-NaN
 ModernAlb[ModernAlb==9999]<-NaN
 
+#Change in albedo
 DiffsAlb<-ModernAlb-PaleoAlb
 DiffMeans<-colMeans(DiffsAlb, na.rm=TRUE)
 
-#Aggregate to months
+rm('ModernAlbRaw', 'PaleoAlbRaw')
+
+#Aggregate to months. Indices are manually assigned according to MODIS dates
 d.alb.jan<-rowMeans(DiffsAlb[1:4],na.rm=TRUE)
 d.alb.feb<-rowMeans(DiffsAlb[5:8],na.rm=TRUE)
 d.alb.mar<-rowMeans(DiffsAlb[9:12],na.rm=TRUE)
@@ -39,42 +47,61 @@ d.alb.month<-data.frame(cbind(d.alb.jan,d.alb.feb,d.alb.mar,d.alb.apr,d.alb.may,
                               d.alb.jun,d.alb.jul,d.alb.aug,d.alb.sep,d.alb.oct,d.alb.nov,d.alb.dec))
 plot(colMeans(d.alb.month, na.rm=TRUE),type='l')
 
+#Regionally aggregated monthly change
 AlbedoChange<-(colMeans(d.alb.month, na.rm=TRUE))
 
 
 #Calculate forcing
 #Ceres_unpack and CalcSolar need to have been run at this point
-AlbForce<-matrix(nrow=nrow(d.alb.month),ncol=12)
-Sun<-rep(0,12)
+AlbForce.month<-AlbForce<-matrix(nrow=nrow(d.alb.month),ncol=12)
+Sun.dyn<-Sun.sta<-rep(0,12)
 insol.avg<-colMeans(Months.insol) #Months.insol is the insolation version of 'Months' below
-transmit.avg<-colMeans(Months) #Average regional monthly transmittance. 'Months' comes from calc solar; its the 10-yr avg monthly transmittance for each pixel
+transmit.month<-colMeans(Months) #Average regional monthly transmittance. 'Months' comes from calc solar; its the 10-yr avg monthly transmittance for each pixel
 
+#Seasonal transmittances
 trans.winter<-mean(transmit.avg[c(1,2,12)])
 trans.spring<-mean(transmit.avg[c(3:5)])
 trans.summer<-mean(transmit.avg[c(6:8)])
 trans.fall<-mean(transmit.avg[c(9:11)])
 
+#Combine into 12-month vector
 transmit.seas<-c(rep(trans.winter,2),rep(trans.spring,3),rep(trans.summer,3),rep(trans.fall,3), rep(trans.winter,1))
 
-transmit.yr<-mean(transmit.avg)
+rm('trans.winter','trans.spring','trans.summer','trans.fall')
 
+#Yearly average
+transmit.yr<-mean(transmit.month)
+
+#Calcualte albedo forcings, yearly transmittance
 for(i in 1:12){
-Sun[i]<-insol.avg[i]*((transmit.yr)^2)
-AlbForce[,i]<-insol.avg[i]*((transmit.yr)^2)*d.alb.month[,i]*(-1)
+Sun.sta[i]<-insol.avg[i]*((transmit.yr)^2)
+AlbForce[,i]<-insol.avg[i]*((transmit.yr)^2)*d.alb.month[,i]
 }
-
 AlbForce.avg<-colMeans(AlbForce, na.rm=TRUE)
 
+#Calculate albedo forcings, monthly transmittance
+for (i in 1:12){
+Sun.dyn<-insol.avg[i]*((transmit.month[i])^2)
+AlbForce.month[,i]<-insol.avg[i]*((transmit.month[i])^2)*d.alb.month[,i]
+}
+AlbForce.month.avg<-colMeans(AlbForce.month, na.rm=TRUE)
+
+#Plot for comparison (remove eventually)
+plot(AlbForce.avg, type='l', lwd=2)
+lines(AlbForce.month.avg, col='blue', lwd=2)
+legend(6,-2, legend=c('yearly','monthly'), col=c('black','blue'), lwd=2, cex=0.5)
 
 ####Dummy net plot####
 plot(colMeans(-AlbForce, na.rm=TRUE),type='l',ylim=c(-4,0.5))
 abline(h=0)
 
+#Cleanup, add basic metadata. and write file
 AlbForce.std<-data.frame(cbind(Georef,AlbForce))
 names(AlbForce.std)<-c("Lat","Lon","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 AlbForce.std[is.na(AlbForce.std)]<-9999
 write.csv(AlbForce.std,"AlbedoForcing_STD.csv")
 
+#Manually copied other forcings - needs to be automated!
 SToffset<-c(-0.922178822, -0.813981288, -0.287019643,  0.038124206,  1.313251843,
              2.424227792,  1.723607501,  1.194636428,  0.849527934, -0.009961376,
             -0.393786777, -0.805246905)

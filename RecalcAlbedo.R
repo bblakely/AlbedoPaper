@@ -75,14 +75,14 @@ transmit.yr<-mean(transmit.month)
 #Calcualte albedo forcings, yearly transmittance
 for(i in 1:12){
 Sun.sta[i]<-insol.avg[i]*((transmit.yr)^2)
-AlbForce[,i]<-insol.avg[i]*((transmit.yr)^2)*d.alb.month[,i]
+AlbForce[,i]<-insol.avg[i]*((transmit.yr)^2)*d.alb.month[,i]*(-1)
 }
 AlbForce.avg<-colMeans(AlbForce, na.rm=TRUE)
 
 #Calculate albedo forcings, monthly transmittance
 for (i in 1:12){
 Sun.dyn<-insol.avg[i]*((transmit.month[i])^2)
-AlbForce.month[,i]<-insol.avg[i]*((transmit.month[i])^2)*d.alb.month[,i]
+AlbForce.month[,i]<-insol.avg[i]*((transmit.month[i])^2)*d.alb.month[,i]*(-1)
 }
 AlbForce.month.avg<-colMeans(AlbForce.month, na.rm=TRUE)
 
@@ -111,13 +111,13 @@ SToffset<-c(-0.922178822, -0.813981288, -0.287019643,  0.038124206,  1.313251843
 Snowoffset_approx<-c(0,0,0.48,2.67,0.078,0,0,0,0,0,0,0)
 SnowSToffset_approx<-c(0.3871,0.73988,0.70798,0.65542,0.14659,0,0,0,0,0,0.075639,0.19390)
 
-plot(colMeans(-AlbForce, na.rm=TRUE),type='l',ylim=c(-5,2.5))
+plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-5,2.5))
 abline(h=0)
 lines(SToffset, col='red')
 lines(Snowoffset_approx, col='blue')
 lines(SnowSToffset_approx, col='light blue')
-lines(-AlbForce.avg+SToffset+Snowoffset_approx+SnowSToffset_approx, lwd=3)
-mean(-AlbForce.avg+SToffset+Snowoffset_approx+SnowSToffset_approx)
+lines(AlbForce.avg+SToffset+Snowoffset_approx+SnowSToffset_approx, lwd=3)
+mean(AlbForce.avg+SToffset+Snowoffset_approx+SnowSToffset_approx)
 abline(h=0)
 ######
 

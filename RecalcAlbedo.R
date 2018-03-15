@@ -100,7 +100,7 @@ legend(9,-3, legend=c('yearly','monthly', 'rad kernels'), col=c('black','blue', 
 AlbForce<-AlbForce.month #Eventually should change this into a function but for now renaming so plots work
 
 ####Dummy net plot####
-plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-4,0.5))
+plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-6,0.5))
 abline(h=0)
 
 #Cleanup, add basic metadata. and write file
@@ -121,7 +121,7 @@ Snowoffset_approx<-c(0,0,0.48,2.67,0.078,0,0,0,0,0,0,0)
 SnowSToffset_approx<-c(0.3871,0.73988,0.70798,0.65542,0.14659,0,0,0,0,0,0.075639,0.19390)
 
 #Basic combined forcing plot
-plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-5,2.5))
+plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-6,2.5))
 abline(h=0)
 lines(SToffset, col='red')
 lines(Snowoffset_approx, col='blue')
@@ -134,8 +134,8 @@ abline(h=0)
 ####Apply vegetation conversion subsetting to albedo####
 ##Must run VegConvert_UTM first to get list.ind, poss, and convert.code
 
-var.set.force=matrix(nrow=12, ncol=26)
-var.set.alb=matrix(nrow=12, ncol=26)
+var.set.force=matrix(nrow=12, ncol=length(poss))
+var.set.alb=matrix(nrow=12, ncol=length(poss))
 count.set=rep(0, length(poss))
 
 #remove NaNs (places missing either modern or historic veg) from convert.code
@@ -145,7 +145,7 @@ convert.code.real<-convert.code[which(!is.na(convert.code))]
 ##These are then added (weighted by proportion of landscape having this conversion) to create uncertainty shading on plots
 ##Necesary because a pooled sd would mistakenly assign variation (different forcings for differen landcovers) as error 
 for(j in 1:length(poss)){ #for each vegetation conversion...
-  AlbSet<-AlbForce[list.ind[[j]],] #Albset is the subset of pixels (forcings) that has that vegetation conversion. Each row a pixel, each column a month.
+  AlbSet<-data.frame(AlbForce[list.ind[[j]],]) #Albset is the subset of pixels (forcings) that has that vegetation conversion. Each row a pixel, each column a month.
   AlbSet.alb<-d.alb.month[list.ind[[j]],] #Albset.alb is the same thing but just for albedo change not forcing
   count.set[j]<-length(list.ind[[j]])/length(which(convert.code.real!=0))#Proportion of all conversions that is the conversion of interest (for weighting)
   for (i in 1:ncol(AlbSet)){  #For each months...
@@ -178,11 +178,11 @@ Comp<-c(-1,3,4) #This one is E to MX, E to DC, or MX to DC
 AlbForce.def<-AlbForce.veg[which(AlbForce.veg[,13]%in%Deforest),]
 AlbForce.avg.def<-colMeans(AlbForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
-uncertainty.def<-rowSums(var.scl.def)
+uncertainty.def<-rowSums(var.scl.def,na.rm=TRUE)
 
 #Set flexible plot limit params
 l.max<-4
-l.min<--12
+l.min<--14
 span<-c(l.min, l.max)
 
 ##Actual plotting
@@ -227,9 +227,9 @@ par(xpd=FALSE)
 
 par(mar=c(5,5,4,2))
 ylab<-expression(Delta~alpha~("%"))
-plot(AlbedoChange,type='l',ylim=c(-0.02,0.1), main='Albedo Change', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(AlbedoChange,type='l',ylim=c(-0.02,0.15), main='Albedo Change', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-2, to=10, by=4), at=seq(-0.02, to=0.1, by=0.04), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-2, to=16, by=4), at=seq(-0.02, to=0.16, by=0.04), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 box(lwd=3)
@@ -240,7 +240,7 @@ abline(h=0, col='red4', lty=2, lwd=3)
 #Albedo RF plot
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2))
-plot(AlbForce.avg,type='l',ylim=c(-6,1), main='Albedo RF', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(AlbForce.avg,type='l',ylim=c(-7,1), main='Albedo RF', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=-14, to=2, by=2), at=seq(from=-14, to=2, by=2), cex.axis=1.5, font=2)

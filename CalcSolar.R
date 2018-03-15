@@ -17,6 +17,7 @@ for(j in 1:12){
 
 names(Months)<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 
+transmit.avg<-colMeans(Months)
  
 #Bring in Insol
 Insol<-read.csv('Insolation.csv', skip=7)

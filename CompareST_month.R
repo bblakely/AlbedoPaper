@@ -141,8 +141,54 @@ MtempsNight<-ModN_Dat
 
 ##SB law calcualtions of longwave flux##
 #Daytime
-HforceDay<-(HtempsDay^4)*SB*.96 #Historic surface outgoing longwave
-MforceDay<-(MtempsDay^4)*SB*.96 #Modern surface outgoing longwave
+emi.h<-0.96
+  #0.988 average from lit
+  #0.96 original
+  #0.9596 regional/annual avg value from albedo
+emi.m<-0.96
+  #0.988 average from lit
+  #0.96 original
+  #0.9552 regional/annual avg value from albedo
+
+HforceDay<-(HtempsDay^4)*SB*emi.h #Historic surface outgoing longwave
+MforceDay<-(MtempsDay^4)*SB*emi.m #Modern surface outgoing longwave
+
+#New albedo based seasonally dynamic emi calculation
+HforceDay.emi<-sweep((HtempsDay^4)*SB,2,emi.h.dyn,'*')
+MforceDay.emi<-sweep((MtempsDay^4)*SB,2,emi.m.dyn,'*')
+
+#Lit based emi's
+emi.db<-read.csv('EMIs_dat.csv')
+emi.avg<-rowMeans(emi.db[3:9])
+
+paleo.emi<-matrix(NA, nrow(HtempsDay), ncol=46)
+paleo.emi[which(!is.na(paleo.veg)),]<-mean(emi.avg[1:5])
+paleo.emi[paleo.veg==12,]<-emi.avg[5]
+paleo.emi[paleo.veg==14,]<-emi.avg[4]
+paleo.emi[paleo.veg==4,]<-emi.avg[3]
+paleo.emi[paleo.veg==5,]<-emi.avg[2]
+paleo.emi[paleo.veg==1,]<-emi.avg[1]
+paleo.emi[,c(1:8,39:46)]<-(paleo.emi[,c(1:8,39:46)] + emi.avg[7])/2
+
+
+modern.emi<-matrix(NA, nrow(d.temp.month), ncol=46)
+modern.emi[which(!is.na(modern.veg)),]<-mean(emi.avg[1:5])
+modern.emi[modern.veg==12,]<-emi.avg[5]
+modern.emi[modern.veg==14,]<-emi.avg[4]
+modern.emi[modern.veg==4,]<-emi.avg[3]
+modern.emi[modern.veg==5,]<-emi.avg[2]
+modern.emi[modern.veg==1,]<-emi.avg[1]
+modern.emi[,c(1:8,39:46)]<-(modern.emi[,c(1:8,39:46)] + emi.avg[7])/2
+
+
+Hforce.l<-(HtempsDay^4)*SB*paleo.emi #Historic surface outgoing longwave
+Mforce.l<-(MtempsDay^4)*SB*modern.emi #Modern surface outgoing longwave
+
+
+#TEMPORARY
+#HforceDay<-Hforce.l
+#MforceDay<-Mforce.l
+
 
 ForcingsDay<-HforceDay-MforceDay  #SURFACE forcings
 AdjforcingDay<-(-368/390)*ForcingsDay #ATMOSPHERIC forcings
@@ -151,6 +197,27 @@ TOAforcingDay<-(22/390)*ForcingsDay #TOA forcings
 AdjDay<-colMeans(AdjforcingDay, na.rm=TRUE)
 TOADay<-colMeans(TOAforcingDay, na.rm=TRUE)
 SURFDay<-colMeans(ForcingsDay, na.rm=TRUE)
+#New 1/30. Plot all emi options
+forcing.l<-colMeans(Hforce.l-Mforce.l, na.rm=TRUE)
+forcing.o<-colMeans(HforceDay-MforceDay, na.rm=TRUE)
+forcing.a<-colMeans(HforceDay.emi-MforceDay.emi, na.rm=TRUE)
+
+lwin_dum<-approx(c(260,264,288,297,334,362,374,377,358,326,301,265)+15, n=46)$y #manually added LWin from syv tower data
+
+forcing.l2<-forcing.l+(colMeans(modern.emi-paleo.emi, na.rm=TRUE)*lwin_dum)
+
+plot(-forcing.o, type='l', ylim=c(-5,6), lwd=3, main='LWforcing(day)')
+lines(-forcing.l, col='red', lwd=3, lty=2)
+lines(-forcing.a, col='blue', lwd=3)#need to run get_EMIs for this one.
+lines(-forcing.l2, col='green', lwd=3, lty=3)
+abline(h=0)
+legend(15,0,legend=c('albedo-based','original (static)','veg based (lit))', "veg based+lw_in"), 
+       lwd=2, col=c('blue','black','red', 'green'), cex=0.5, bty='n')
+
+mean(-forcing.o)
+mean(-forcing.a)
+mean(-forcing.l)
+mean(-forcing.l2)
 
 #New 1/22. Plot component fluxes day
 plot(SURFDay, ylim=c(-8,5), type='l', ylab='LW components', main='Day')
@@ -161,8 +228,8 @@ legend(0,-2, legend = c("Surface; (-) means more heat out", 'TOA; (-) means more
        col=c('black', 'light blue', 'red'), lwd=1, cex=0.5, bty='n')
 
 #Nighttime
-HforceNight<-(HtempsNight^4)*SB*.96
-MforceNight<-(MtempsNight^4)*SB*.96
+HforceNight<-(HtempsNight^4)*SB*emi.h
+MforceNight<-(MtempsNight^4)*SB*emi.m
 
 ForcingsNight<-HforceNight-MforceNight
 AdjforcingNight<-(-368/390)*ForcingsNight

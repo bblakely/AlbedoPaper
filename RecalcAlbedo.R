@@ -1,14 +1,15 @@
 ##Run VegConvert_UTM, Ceres_unpack, and CalcSolar before starting
 source('VegConvert_UTM.R')
+source('Ceres_unpack.R')
 source('CalcSolar.R')
 
 #Cleanup unwanted bits from CalcSolar and VegConvert
-rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code")))
-
+rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg")))
 
 #Read in raw data
 ModernAlbRaw<-read.csv('Albedo_Modern1.csv',skip=7)
-PaleoAlbRaw<-read.csv('Albedo_Paleo.csv',skip=7)
+PaleoAlbRaw<-read.csv('Albedo_Paleo_v2.csv',skip=7) #older: 'Albedo_Paleo.csv; in 'older data'
+#new: 'Albedo_Paleo_v2.csv'
 
 #Pull georef
 Georef<-ModernAlbRaw[2:nrow(ModernAlbRaw), 5:6]
@@ -45,11 +46,12 @@ d.alb.nov<-rowMeans(DiffsAlb[39:42],na.rm=TRUE)
 d.alb.dec<-rowMeans(DiffsAlb[43:46],na.rm=TRUE)
 d.alb.month<-data.frame(cbind(d.alb.jan,d.alb.feb,d.alb.mar,d.alb.apr,d.alb.may,
                               d.alb.jun,d.alb.jul,d.alb.aug,d.alb.sep,d.alb.oct,d.alb.nov,d.alb.dec))
-plot(colMeans(d.alb.month, na.rm=TRUE),type='l')
+plot(colMeans(d.alb.month, na.rm=TRUE),type='l', ylim=c(0,0.1))
 
 #Regionally aggregated monthly change
 AlbedoChange<-(colMeans(d.alb.month, na.rm=TRUE))
-
+kern<-c(-0.4497905, -0.6347546, -0.9331561, -1.7380854, -2.0052537, -2.1795964, -2.3169745, -2.1485645, -1.6113351, -1.0286796, -0.5552617, -0.4964455)
+AlbedoForce_radkern<-(AlbedoChange/0.01)*kern
 
 #Calculate forcing
 #Ceres_unpack and CalcSolar need to have been run at this point
@@ -87,16 +89,18 @@ AlbForce.month[,i]<-insol.avg[i]*((transmit.month[i])^2)*d.alb.month[,i]*(-1)
 AlbForce.month.avg<-colMeans(AlbForce.month, na.rm=TRUE)
 
 #Plot for comparison (remove eventually)
-plot(AlbForce.avg, type='l', lwd=2)
+plot(AlbForce.avg, type='l', lwd=2, ylim=c(-7,1))
 lines(AlbForce.month.avg, col='blue', lwd=2)
-legend(6,-2, legend=c('yearly','monthly'), col=c('black','blue'), lwd=2, cex=0.5)
-AlbForce.bku<-AlbForce #Set backup for yearly
+lines(AlbedoForce_radkern, col='purple',lwd=2)
+abline(h=0, lty=2,lwd=2)
+legend(9,-3, legend=c('yearly','monthly', 'rad kernels'), col=c('black','blue', 'purple'), lwd=2, cex=0.5)
+#AlbForce.bku<-AlbForce #Set backup for yearly
 
 ##SUPER KEY SET THIS###
 AlbForce<-AlbForce.month #Eventually should change this into a function but for now renaming so plots work
 
 ####Dummy net plot####
-plot(colMeans(-AlbForce, na.rm=TRUE),type='l',ylim=c(-4,0.5))
+plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-4,0.5))
 abline(h=0)
 
 #Cleanup, add basic metadata. and write file

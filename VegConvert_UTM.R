@@ -2,7 +2,7 @@
 
 #####Preprocessing#####
 modern.raw<-read.csv("Modern_vegetation_UTM.csv", skip=7)
-paleo.raw<-read.csv("Paleo_vegetation_UTM.csv", skip=7)
+paleo.raw<-read.csv("Paleo_vegetation_UTM_v2.csv", skip=7)
 
 #clip off extra envi line
 modern.dat<-modern.raw[2:nrow(modern.raw),] 
@@ -35,15 +35,12 @@ modern.veg[modern.veg==13]<-26
 modern.veg<-modern.veg[,7]
 paleo.veg<-paleo.veg[,7]
 
-#NAN fill values (why?)
+#NAN fill values 
 modern.veg[modern.veg==9999]<-NA
 paleo.veg[paleo.veg==9999]<-NA
 
 #The important bit. Subtract veg codes from each other
 convert.code<-modern.veg-paleo.veg
-
-#Lose any places where I missed NaNing a fill value. Unnecessary.
-#convert.code[convert.code>9000]<-NA 
 
 #visual sanity check -  none should be > |20|
 hist(convert.code,breaks=25)
@@ -52,7 +49,8 @@ hist(convert.code,breaks=25)
 poss<-sort(unique(convert.code))
 
 #make list of indices for each possible conversion
-#Yields a 26-member list. Each member is one conversion, e.g.  
+#Yields a 26-member list. Each member is one conversion
+#e.g.  historic mosaic (14) to modern evergreen (1) = 1 - 14 = -13. On round i = 1, pulls indices of all palces where convert code is -13 (i.e. where mo -> eg occurred)
 list.ind<-list()
 for(i in 1:length(poss)){
   list.ind[[i]]<- which(convert.code==poss[i])

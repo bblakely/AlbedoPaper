@@ -1,6 +1,6 @@
 #Read in data
-Modern_day_raw<-read.csv('Modern_day.csv', skip=7)
-Modern_night_raw<-read.csv('Modern_night.csv', skip=7)
+Modern_day_raw<-read.csv('Modern_day_(v2).csv', skip=7)
+Modern_night_raw<-read.csv('Modern_night_(v2).csv', skip=7)
 Paleo_day_raw<-read.csv('Paleo_day_v2.csv', skip=7)
 Paleo_night_raw<-read.csv('Paleo_night_v2.csv', skip=7) 
 
@@ -13,16 +13,16 @@ nobs=nrow(Modern_day_raw)
 Georef<-Paleo_day_raw[2:nobs, 5:6] 
 
 #Clip off ENVI additional line, unneeded metadata. NAN fills.
-ModD_Dat<-Modern_day_raw[2:nobs,5:50]
+ModD_Dat<-Modern_day_raw[2:nobs,7:52]
 ModD_Dat[ModD_Dat==9999]<-NaN
 
-ModN_Dat<-Modern_night_raw[2:nobs,5:50]
+ModN_Dat<-Modern_night_raw[2:nobs,7:52]
 ModN_Dat[ModN_Dat==9999]<-NaN
 
-PalD_Dat<-Paleo_day_raw[2:nobs,7:50]
+PalD_Dat<-Paleo_day_raw[2:nobs,7:52]
 PalD_Dat[PalD_Dat==9999]<-NaN
 
-PalN_Dat<-Paleo_night_raw[2:nobs,7:50]
+PalN_Dat<-Paleo_night_raw[2:nobs,7:52]
 PalN_Dat[PalN_Dat==9999]<-NaN
 
 #Vectors of Differences in temp
@@ -101,7 +101,7 @@ useweight_force<-approx(dayweight, n=46) # Selects 14 weights, one for each MODI
 
 #Tabular weighting
 #Tabweight is the proportion of daylight hours
-Tabweight<-matrix(nrow=24650,ncol=12, data=rep(useweight_temp$y, each=24650)) #Space
+Tabweight<-matrix(nrow=24534,ncol=12, data=rep(useweight_temp$y, each=24534)) #Space
 Tabweight.temp<-Tabweight
 
 # Weighted average of day ST for day hours and night for night. 
@@ -122,7 +122,7 @@ mean(AvgDiffs[SummerDays])
 mean(AvgDiffs[WinterDays])
 
 #Plot of non-collapsed weighted temp changes
-plot(AvgDiffs, type='l',ylim=c(-.5,1), main='Day and Night ST')
+plot(AvgDiffs, type='l',ylim=c(-.5,1.3), main='Day and Night ST')
 abline(h=0, lty=2)
 lines(NightDiffu, col='forest green')
 lines(DayDiffu, col='red')
@@ -153,9 +153,9 @@ emi.m<-0.96
 HforceDay<-(HtempsDay^4)*SB*emi.h #Historic surface outgoing longwave
 MforceDay<-(MtempsDay^4)*SB*emi.m #Modern surface outgoing longwave
 
-#New albedo based seasonally dynamic emi calculation
-HforceDay.emi<-sweep((HtempsDay^4)*SB,2,emi.h.dyn,'*')
-MforceDay.emi<-sweep((MtempsDay^4)*SB,2,emi.m.dyn,'*')
+#New albedo based seasonally dynamic emi calculation. Shouldn't use
+#HforceDay.emi<-sweep((HtempsDay^4)*SB,2,emi.h.dyn,'*')
+#MforceDay.emi<-sweep((MtempsDay^4)*SB,2,emi.m.dyn,'*')
 
 #Lit based emi's
 emi.db<-read.csv('EMIs_dat.csv')
@@ -200,19 +200,19 @@ SURFDay<-colMeans(ForcingsDay, na.rm=TRUE)
 #New 1/30. Plot all emi options
 forcing.l<-colMeans(Hforce.l-Mforce.l, na.rm=TRUE)
 forcing.o<-colMeans(HforceDay-MforceDay, na.rm=TRUE)
-forcing.a<-colMeans(HforceDay.emi-MforceDay.emi, na.rm=TRUE)
+#forcing.a<-colMeans(HforceDay.emi-MforceDay.emi, na.rm=TRUE)
 
 lwin_dum<-approx(c(260,264,288,297,334,362,374,377,358,326,301,265)+15, n=46)$y #manually added LWin from syv tower data
 
 forcing.l2<-forcing.l+(colMeans(modern.emi-paleo.emi, na.rm=TRUE)*lwin_dum)
 
-plot(-forcing.o, type='l', ylim=c(-5,6), lwd=3, main='LWforcing(day)')
+plot(-forcing.o, type='l', ylim=c(-5,8), lwd=3, main='LWforcing(day)')
 lines(-forcing.l, col='red', lwd=3, lty=2)
-lines(-forcing.a, col='blue', lwd=3)#need to run get_EMIs for this one.
+#lines(-forcing.a, col='blue', lwd=3)#need to run get_EMIs for this one.
 lines(-forcing.l2, col='green', lwd=3, lty=3)
 abline(h=0)
 legend(15,0,legend=c('albedo-based','original (static)','veg based (lit))', "veg based+lw_in"), 
-       lwd=2, col=c('blue','black','red', 'green'), cex=0.5, bty='n')
+       lwd=2, col=c('blue','black','red', 'green'), cex=0.5, bty='n', ncol=2)
 
 mean(-forcing.o)
 mean(-forcing.a)
@@ -259,7 +259,7 @@ legend(0,-2, legend = c("Surface; (-) means more heat out", 'TOA; (-) means more
 # ***Need to do this bit for other component fluxes as well***
 
 #Weighting
-Tabweight<-matrix(nrow=24650,ncol=46, data=rep(useweight_force$y, each=24650))
+Tabweight<-matrix(nrow=24534,ncol=46, data=rep(useweight_force$y, each=24534))
 TableForce<-data.frame(AdjforcingDay*Tabweight+AdjforcingNight*(1-Tabweight))
 TableForce_long<-TableForce
 plot(colMeans(TableForce_long, na.rm=TRUE), type='l')
@@ -310,14 +310,14 @@ mean(STNetForceTab[SummerDays])
 
 ####Apply vegetation conversion subsetting to Surface Temp####
 
-var.set.force=matrix(nrow=12, ncol=26)
-var.set.lst=matrix(nrow=12, ncol=26)
+var.set.force=matrix(nrow=12, ncol=length(poss))
+var.set.lst=matrix(nrow=12, ncol=length(poss))
 count.set=rep(0, length(poss))  
 
 #Same deal as for recalc_albedo; check there for full explanation
 #General goal is to do a weighted sum of variance in each conversion to more accurately capture uncertainty
 for(j in 1:length(poss)){
-  LSTSet.force<-rf.temp.month[list.ind[[j]],]
+  LSTSet.force<-data.frame(rf.temp.month[list.ind[[j]],])
   LSTSet.lst<-TableDiffs[list.ind[[j]],]
   count.set[j]<-length(list.ind[[j]])/length(which(!is.na(convert.code)))
   for (i in 1:ncol(LSTSet.force)){
@@ -350,7 +350,7 @@ Urb<-c(12,14,21,22,25)
 STForce.def<-STForce.veg[which(STForce.veg[,13]%in%Deforest),]
 STForce.avg.def<-colMeans(STForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
-uncertainty.def<-rowSums(var.scl.def)
+uncertainty.def<-rowSums(var.scl.def, na.rm=TRUE)
 
 #used to check how no-snow places act (why?)
 defplace<-which(STForce.veg[,13]%in%Deforest)
@@ -370,8 +370,8 @@ uncertainty.comp<-rowSums(var.scl.comp)
 
 #Deforestation forcing
 # These numbers should be the reverse of albedo, i.e. -2 to 6 becomes -6 to 2
-l.max<-12
-l.min<--4
+l.max<-14
+l.min<--5
 span<-c(l.min, l.max)
 
 
@@ -422,7 +422,7 @@ smoothRF<-TabRF
 #Regional ST forcing
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2))
-plot(smoothRF,type='l',ylim=c(-4,5), main='LST RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+plot(smoothRF,type='l',ylim=c(-4,6), main='LST RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=-5, to=5, by=2), at=seq(from=-5, to=5, by=2), cex.axis=1.5, font=2)

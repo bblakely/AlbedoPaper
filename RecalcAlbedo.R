@@ -181,7 +181,7 @@ var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Defores
 uncertainty.def<-rowSums(var.scl.def,na.rm=TRUE)
 
 #Set flexible plot limit params
-l.max<-4
+l.max<-5
 l.min<--14
 span<-c(l.min, l.max)
 

@@ -287,7 +287,7 @@ TabRF<-colMeans(TableForce, na.rm=TRUE)
 
 #Write CSV for forcing standardization
 #STForceDat<-cbind(Georef,TableForce)
-#write.csv(STForceDat, "STForcing.csv")
+#write.csv(STForceDat, "WriteFile/STForcing.csv")
 
 TabPix<-rowMeans(TableForce, na.rm=TRUE) #Yearly averages for each pixel
 quantile(TabPix, c(0.1,0.9), na.rm=TRUE) #And its 'uncertainty'
@@ -447,7 +447,7 @@ polygon(x=c(1:12,12:1),y=c(smoothRF+1.96*uncertainty.force,rev(smoothRF-1.96*unc
 lines(smoothRF, lwd=5) 
 abline(h=0, col='red4', lty=2, lwd=3)
 
-#write.csv(STNetForce,'ST_dayweight.csv')
+#write.csv(STNetForce,'WriteFile/ST_dayweight.csv')
 
 
 

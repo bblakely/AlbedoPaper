@@ -44,9 +44,9 @@ ModDAT<-ModDAT[!is.na(Checkvec),]
 nobs=nrow(EarDAT)
 
 HistAlbs<-matrix(nrow=nobs,ncol=12)
-plots<-sample(1:nobs,20)
 
 for (n in 1:nobs){
+######
   #nrow(AlbedoDAT)
   Epix<-unlist(EarDAT[n,1:12])
   Mpix<-unlist(ModDAT[n,1:12])
@@ -75,62 +75,91 @@ for (n in 1:nobs){
   HistAlb[index]<-Apix[index]
   
   HistAlbs[n,]<-HistAlb
+#######  
+  ###Plotting Commands. Comment out for speed
+  start<-1
+  end<-6
+  shift.mag<-as.matrix(HistAlbs-AlbedoDAT)
+  shift.avg<-rowMeans(shift.mag[,start:end])
+  shift.quant<-quantile(shift.avg, .95, na.rm=TRUE)
+  shift.large<-which(shift.avg > shift.quant)
+  plots<-sample(shift.large,20)
+   #if (any(n == plots)){
+    if (n == 3424){
+    plot(Escale,type='l',lty=2, lwd=2, xlab='Month',
+       main=paste('Albedo Shift', n), col='white', ylim=c(.1,.65), pch=1.5,
+       ylab='Albdeo', xlim=c(1,6),font=2, font.lab=2)
+
+  #axis(1,at=seq(from=1, to=12,length.out=12),labels=c(1:12))
+  legend(4.8,0.65, legend=c('Modern','Shifted'),
+         col=c('purple', 'orange'), lwd=2, text.font=2, cex=0.8)
+  #lines(Mscale, type='l',col='red', lty=2, lwda=2)
+  lines(Apix, col='purple',lty=2, lwd=2)
+  lines(HistAlb, col='orange', lwd=2)
+  box(lwd=3)
   
-  ###Plotting Commands. Commented out for speed
-   if (any(n == plots)){
-#   plot(Escale,type='l',lty=2, lwd=2, xaxt='n', xlab='Month', 
-#        main='Albedo Shift', col='white', ylim=c(0,.6), pch=1.5,
-#        ylab='Albdeo') 
-#   #originally had main=n and no color=white or ylim to track during dev
-#   
-#   axis(1,at=seq(from=1, to=46,length.out=12),labels=c(1:12))
-#   legend(15,0.5, legend=c('Historic Albedo', 'Modern Albedo'), 
-#          col=c('orange', 'purple'), lwd=2)
-#   #lines(Mscale, type='l',col='red', lty=2, lwd=2)
-#   lines(Apix, col='purple',lty=2, lwd=2)
-#   lines(HistAlb, col='orange', lwd=2)
-   plot(Epix, type='l')
-   lines(Mpix, col='red')
+  plot(Epix, type='l', main='SWE',xlim=c(1,6), lwd=2,xlab='Month',ylab='SWE', 
+       font=2, font.lab=2)
+  lines(Mpix, col='red', lwd=2)
+  legend(4.6,y=max(Epix), legend=c('2000 - 2010', '1900 - 1910'),
+         col=c('red', 'black'), lwd=2, text.font=2, cex=0.8)
+  box(lwd=3)
+  
+  plot(Enorm, type='l', main='Normalized SWE',xlim=c(1,6), ylab='% Maximum SWE',
+        lwd=2,xlab='Month',font=2, font.lab=2)
+  lines(Mnorm, col='red', lwd=2)
+  legend(4.6,1, legend=c('2000 - 2010', '1900 - 1910'),
+          col=c('red', 'black'), lwd=2, text.font=2, cex=0.8)
+  box(lwd=3)
+  
+  print(paste('M', Mnorm[3], n))
+  print(paste('H', Enorm[3], n))
+  print(paste('A', Apix[3], n))
+  print(paste('RG', AlbRange, n))
+  print(paste('S', HistAlb[3],n))
+
  }
 }
 
 HistAlbAvg=colMeans(HistAlbs, na.rm=TRUE)
-ModAlbAvg=colMeans(AlbedoDAT[,1:46])
+ModAlbAvg=colMeans(AlbedoDAT)
 
+AlbedoDiffs<-HistAlbs-AlbedoDAT
+#385 looks good
 #####Albedo Change plots####
-# #spring
-# Histsm<-approx(HistAlbAvg[1:20], n=10)
-# Modsm<-approx(ModAlbAvg[1:20],n=10)
-# 
-# plot(Histsm, type='l',ylim=c(0.13,0.36), main='Spring Albedo Shift', cex.main=2.0,ylab='Mean Albedo', xlab='Month', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
-# lines(Modsm, col='red 4', lwd=5)
-# xaxis<-approx(c(1:20), n=5)
-# axis(side=1,labels=c(1:5),at=xaxis$y, cex.axis=1.5, font=2)
-# axis(side=2, labels=seq(from=0.15, to=0.36, by=0.05), at=seq(from=0.15, to=0.36, by=0.05), cex.axis=1.5, font=2)
-# box(,lwd=3)
-# lines(Histsm[1:20], lwd=5)
-# 
-# legend(x=12.5,y=0.35,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
-# 
-# #Fall
-# 
-# Histsm<-approx(HistAlbAvg[36:46], n=5)
-# Modsm<-approx(ModAlbAvg[36:46],n=5)
-# 
-# plot(Histsm, type='l',ylim=c(0.13,0.3), main='Fall Albedo Shift', cex.main=2.0,ylab='Mean Albedo', xlab='Month', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
-# lines(Modsm, col='red 4', lwd=5)
-# xaxis<-approx(c(1:10), n=3)
-# axis(side=1,labels=c(10:12),at=xaxis$y, cex.axis=1.5, font=2)
-# axis(side=2, labels=seq(from=0.10, to=0.3, by=0.05), at=seq(from=0.10, to=0.3, by=0.05), cex.axis=1.5, font=2)
-# box(,lwd=3)
-# lines(Histsm[1:20], lwd=5)
-# 
-# legend(x=1.1,y=0.29,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
-# 
-# 
-# AlbedoDiffs<-HistAlbs-(AlbedoDAT[,1:12])
-# AvgDiffs<-colMeans(AlbedoDiffs, na.rm=TRUE)
-# plot(AvgDiffs, type='l', main='albedo change')
+#spring
+Histsm<-approx(HistAlbAvg[1:20], n=10)
+Modsm<-approx(ModAlbAvg[1:20],n=10)
+
+plot(Histsm, type='l',ylim=c(0.13,0.36), main='Spring Albedo Shift', cex.main=2.0,ylab='Mean Albedo', xlab='Month', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+lines(Modsm, col='red 4', lwd=5)
+xaxis<-approx(c(1:20), n=5)
+axis(side=1,labels=c(1:5),at=xaxis$y, cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=0.15, to=0.36, by=0.05), at=seq(from=0.15, to=0.36, by=0.05), cex.axis=1.5, font=2)
+box(lwd=3)
+lines(Histsm[1:20], lwd=5)
+
+legend(x=12.5,y=0.35,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
+
+#Fall
+
+Histsm<-approx(HistAlbAvg[36:46], n=5)
+Modsm<-approx(ModAlbAvg[36:46],n=5)
+
+plot(Histsm, type='l',ylim=c(0.13,0.3), main='Fall Albedo Shift', cex.main=2.0,ylab='Mean Albedo', xlab='Month', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+lines(Modsm, col='red 4', lwd=5)
+xaxis<-approx(c(1:10), n=3)
+axis(side=1,labels=c(10:12),at=xaxis$y, cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=0.10, to=0.3, by=0.05), at=seq(from=0.10, to=0.3, by=0.05), cex.axis=1.5, font=2)
+box(,lwd=3)a
+lines(Histsm[1:20], lwd=5)
+
+legend(x=1.1,y=0.29,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
+
+
+AlbedoDiffs<-HistAlbs-(AlbedoDAT[,1:12])
+AvgDiffs<-colMeans(AlbedoDiffs, na.rm=TRUE)
+plot(AvgDiffs, type='l', main='albedo change')
 #####
 ####Bring in Solar####
 #Bring in transmittance
@@ -203,16 +232,16 @@ smoothRF<-AvgRF
 par(mar=c(5,5,4,2))
 plot(AvgRF,type='l',ylim=c(-2,9), main='Snow Albedo RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 ylab=expression(RF~(Wm^-2))
-axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-2, to=9, by=2), at=seq(from=-2, to=9, by=2), cex.axis=1.5, font=2)
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-2, to=9, by=3), at=seq(from=-2, to=9, by=3), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
-box(,lwd=3)
+box(lwd=3)
 polygon(x=c(1:12,12:1),y=c(smtop,rev(smbottom)),border=NA, col='gray')
 lines(AvgRF, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
 
-write.csv(AvgRF,'SnowForcing1.csv')
+write.csv(AvgRF,'WriteFile/SnowForcing1.csv')
 
 #mean(AvgRF[AvgRF!=0])
 #plot(AvgRF, type='l' )

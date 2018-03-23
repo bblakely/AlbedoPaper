@@ -209,11 +209,21 @@ slopes<-c(1:7)
 ints<-c(1:7)
 for (i in c(1:7)){
   
-  plot(rs.month[,i]~swe.month[,i], main=monthlab[i], ylim=c(-5,5), xlab="GHCN SWE", ylab="LST residuals", pch='.', xlim=c(0,300))
   line<-lm(rs.month[,i]~swe.month[,i])
   params<-unname(line[[1]])
-  abline(params[1],params[2], lwd=2, col='red')
-  print(params[2])
+  print(summary(line)$r.squared)
+  #legend(150,-1, legend=paste('r2:', line$r.squared))
+  
+  # smoothScatter(rs.month[,i]~swe.month[,i],ylim=c(-5,5), 
+  #               xlab="GHCN SWE", ylab="LST residuals", xlim=c(0,300))
+  # abline(params[1],params[2], lwd=2, col='black')
+  plot(rs.month[,i]~swe.month[,i], main=monthlab[i], ylim=c(-5,5), 
+       xlab="SWE", ylab="LST Residual", pch='.', xlim=c(0,300), 
+       font=2,font.lab=2)
+  abline(params[1],params[2], lwd=2, col='black')
+  box(lwd=2)
+
+  #print(params[2])
   slopes[i]<-params[2]
   ints[i]<-params[1]
 }

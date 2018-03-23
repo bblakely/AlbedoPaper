@@ -107,7 +107,7 @@ abline(h=0)
 AlbForce.std<-data.frame(cbind(Georef,AlbForce))
 names(AlbForce.std)<-c("Lat","Lon","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 AlbForce.std[is.na(AlbForce.std)]<-9999
-write.csv(AlbForce.std,"AlbedoForcing_STD.csv")
+write.csv(AlbForce.std,"WriteFile/AlbedoForcing_STD.csv")
 
 #####
 #Manually copied other forcings - needs to be automated!
@@ -170,15 +170,19 @@ par(mfrow=c(1,1))
 
 #Forcing for Deforest/compshift
 AlbForce.veg<-cbind(AlbForce, convert.code)
+AlbChange.veg<-cbind(d.alb.month, convert.code)
 Deforest<-c(7:11,13,21,22,25)    #This one is EG, MX, or DC forest to C, M, or U only
 Deforest.2<-c(-2,7:13,21,22,25)  #This one includes mosaic to urban and mosaic to crop
 Comp<-c(-1,3,4) #This one is E to MX, E to DC, or MX to DC
 
 #Pull forcings/uncertainties for deforestation
-AlbForce.def<-AlbForce.veg[which(AlbForce.veg[,13]%in%Deforest),]
+AlbForce.def<-AlbForce.veg[which(AlbForce.veg[,13]%in%Deforest.2),]
 AlbForce.avg.def<-colMeans(AlbForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
 uncertainty.def<-rowSums(var.scl.def,na.rm=TRUE)
+
+AlbChange.def<-AlbChange.veg[which(AlbForce.veg[,13]%in%Deforest),]
+mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
 
 #Set flexible plot limit params
 l.max<-5
@@ -205,6 +209,11 @@ AlbForce.comp<-AlbForce.veg[which(AlbForce.veg[,13]%in%Comp),]
 AlbForce.avg.comp<-colMeans(AlbForce.comp[,1:12], na.rm=TRUE)
 var.scl.comp<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Comp)]
 uncertainty.comp<-rowSums(var.scl.comp)
+
+AlbChange.comp<-AlbChange.veg[which(AlbForce.veg[,13]%in%Comp),]
+mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE)) #Yearly avg, deforested
+
+
 
 #Plot RF for compshift
 par(mar=c(5,6,4,2))

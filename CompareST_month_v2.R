@@ -340,8 +340,10 @@ uncertainty.lst<-rowSums(var.scl.lst, na.rm=TRUE)
 ###Deforest and Comp shift figure###
 
 STForce.veg<-cbind(TableForce, convert.code)
+STChg.veg<-cbind(TableDiffs, convert.code)
 
-Deforest<-c(7:11,13,21,22,25)    #This one is EG, MX, or DC forest to C, M, or U only
+
+###ALL the plotsDeforest<-c(7:11,13,21,22,25)    #This one is EG, MX, or DC forest to C, M, or U only
 Deforest.2<-c(-2,7:13,21,22,25)  #This one includes mosaic to urban and mosaic to crop
 Comp<-c(-1,3,4) #This one is E to MX, E to DC, or MX to DC
 Urb<-c(12,14,21,22,25)
@@ -351,6 +353,12 @@ STForce.def<-STForce.veg[which(STForce.veg[,13]%in%Deforest),]
 STForce.avg.def<-colMeans(STForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
 uncertainty.def<-rowSums(var.scl.def, na.rm=TRUE)
+
+STChg.def<-STChg.veg[which(STChg.veg[,13]%in%Deforest),]
+STChg.def.avg<-colMeans(STChg.def[1:12], na.rm=TRUE)
+mean(STChg.def.avg)
+mean(STChg.def.avg[c(1:2,12)])
+mean(STChg.def.avg[c(6:8)])
 
 #used to check how no-snow places act (why?)
 defplace<-which(STForce.veg[,13]%in%Deforest)
@@ -366,7 +374,13 @@ var.scl.comp<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Comp)]
 uncertainty.comp<-rowSums(var.scl.comp)
 
 
-###ALL the plots
+STChg.comp<-STChg.veg[which(STChg.veg[,13]%in%Comp),]
+STChg.comp.avg<-colMeans(STChg.comp[1:12], na.rm=TRUE)
+mean(STChg.comp.avg)
+mean(STChg.comp.avg[c(1:2,12)])
+mean(STChg.comp.avg[c(6:8)])
+
+
 
 #Deforestation forcing
 # These numbers should be the reverse of albedo, i.e. -2 to 6 becomes -6 to 2

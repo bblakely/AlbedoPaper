@@ -2,14 +2,17 @@
 source('RecalcAlbedo.R')
 source('CompareST_month_v2.R')
 
+writefile<-FALSE
+
 alb.diff<-data.frame(d.alb.month)
 st.diff<-data.frame(TableDiffs)
 
 alb.force<-data.frame(AlbForce)
 st.force<-data.frame(TableForce)
 
-veg.force<-alb.force+st.force
-#rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff"))
+veg.force<-data.frame(alb.force+st.force)
+
+rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "Georef", "Georef.utm", "convert.code", "writefile", "veg.force")))
 
 #Seasonal profiles
 
@@ -116,7 +119,52 @@ box(lwd=3)
 
 
 #### Exporting ####
-write.csv(alb, "WriteFile/Albedo_Forcing.csv")
-write.csv(st, "WriteFile/ST_Forcing.csv")
-write.csv(veg.force, "WriteFile/Total_Veg_Forcing.csv")
+
+months<-c("jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov")
+if(writefile==TRUE){
+  alb.force[is.na(alb.force)]<-9999;colnames(alb.force)<-months
+  st.force[is.na(alb.force)]<-9999;colnames(st.force)<-months
+  veg.force[is.na(alb.force)]<-9999;colnames(veg.force)<-months
+  write.csv(cbind(Georef.utm, alb.force),"WriteFile/Albedo_Forcing.csv", quote="false", row.names=FALSE)
+  write.csv(cbind(Georef.utm, st.force), "WriteFile/ST_Forcing.csv")
+  write.csv(cbind(Georef.utm, veg.force), "WriteFile/Total_Veg_Forcing.csv")
+  
+  alb.diff[is.na(alb.diff)]<-9999
+  write.csv(cbind(Georef.utm, alb.diff),"WriteFile/Albedo_Change.csv", quote=FALSE, row.names=FALSE)
+  write.csv(cbind(Georef.utm, st.diff), "WriteFile/ST_Change.csv")
+}
+
+#Maps created by (1) subtracting the modeled rasters in ENVI (2) cleaning in IDL, and (3) symbolizing in ArcGIS
+#There is almost certainly a better way, but that works
+
+#...unlike all of this stuff where I tried to get this to work in R
+# test<-cbind(Georef, alb.force[,6])
+# coordinates(test)=~Lon+Lat
+# proj4string(test)=CRS("+init=epsg:4326")
+# test2 = spTransform(test,CRS("+init=epsg:3175"))
+# gridded(test2)<-TRUE
+# points2grid(test, tolerance=2.5e-8)
+# r<-raster(test2)
+# projection(r)<-CRS("+init=epsg:3175")
+# plot(r)
+
+
+#veg subsetting
+key<-read.csv('convertcode_key.csv')
+par(mfrow=c(2,2))
+par(mar=c(2,3,2,2))
+for(i in 1:nrow(key)){
+  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-30,30), ylab='forcing', lty=2, main=paste(key$PAL[i],"to",key$MOD[i]), type='l', col='dark blue')
+  lines(colMeans(st.force[convert.code==key$Code[i],], na.rm=TRUE), lty=2, col='dark red')
+  lines(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE), lwd=3)
+  abline(h=0, col='red')
+  text(9,20, paste("n=",length(which(convert.code==key$Code[i]))," (",
+                    round((length(which(convert.code==key$Code[i]))/length(which(!is.na(convert.code)))),3)*100,"%",
+                    ")", sep=''), cex=0.8)
+  text(9,-20, paste("Veg RF:", 
+                    round(mean(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE)),3)),
+                    cex=0.8)
+  
+}
+
 

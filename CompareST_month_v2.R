@@ -1,10 +1,14 @@
+#ST analyses
+
+source('VegConvert_UTM.R')
+
 #Read in data
 Modern_day_raw<-read.csv('Modern_day_(v2).csv', skip=7)
 Modern_night_raw<-read.csv('Modern_night_(v2).csv', skip=7)
 Paleo_day_raw<-read.csv('Paleo_day_v2.csv', skip=7)
 Paleo_night_raw<-read.csv('Paleo_night_v2.csv', skip=7) 
 
-source('VegConvert_UTM.R')
+diag.plots<-FALSE #Do you want diagnostic plots?
 
 #number of observations; to use whenever we want all the rows (pixels)
 nobs=nrow(Modern_day_raw)
@@ -30,7 +34,7 @@ PalN_Dat[PalN_Dat==9999]<-NaN
 ###Day
 DayDiffs=ModD_Dat-PalD_Dat
 DayDiffu=colMeans(DayDiffs, na.rm=TRUE)
-plot(DayDiffu, type='l')
+if(diag.plots==TRUE){plot(DayDiffu, type='l')}
 
 ####Day Temp To Months####
 d.temp.jan<-rowMeans(DayDiffs[1:4],na.rm=TRUE)
@@ -53,12 +57,12 @@ d.temp.month<-data.frame(cbind(d.temp.jan,d.temp.feb,d.temp.mar,d.temp.apr,d.tem
 
 DayDiffs<-d.temp.month
 DayDiffu=colMeans(DayDiffs, na.rm=TRUE)
-lines(approx(DayDiffu, n=46)$y,col='green')
+if(diag.plots==TRUE){lines(approx(DayDiffu, n=46)$y,col='green')}
 
 ###Night
 NightDiffs=ModN_Dat-PalN_Dat
 NightDiffu=colMeans(NightDiffs, na.rm=TRUE)
-plot(NightDiffu)
+if(diag.plots==TRUE){plot(NightDiffu)}
 
 ####Night Temp To Months####
 n.temp.jan<-rowMeans(NightDiffs[1:4],na.rm=TRUE)
@@ -80,7 +84,7 @@ n.temp.month<-data.frame(cbind(n.temp.jan,n.temp.feb,n.temp.mar,n.temp.apr,n.tem
 #####
 NightDiffs<-n.temp.month
 NightDiffu=colMeans(NightDiffs, na.rm=TRUE)
-lines(approx(NightDiffu, n=46)$y, col='green')
+if(diag.plots==TRUE){lines(approx(NightDiffu, n=46)$y, col='green')}
 
 #Unweighted
 #MeanDiffs=(NightDiffu+DayDiffu)/2
@@ -139,23 +143,14 @@ HtempsNight<-PalN_Dat
 MtempsDay<-ModD_Dat
 MtempsNight<-ModN_Dat
 
-##SB law calcualtions of longwave flux##
-#Daytime
+## SB law calcualtions of longwave flux ##
+
+####Set emissivities####
+#Flat emi's (original); Daytime
 emi.h<-0.96
-  #0.988 average from lit
-  #0.96 original
-  #0.9596 regional/annual avg value from albedo
 emi.m<-0.96
-  #0.988 average from lit
-  #0.96 original
-  #0.9552 regional/annual avg value from albedo
-
-HforceDay<-(HtempsDay^4)*SB*emi.h #Historic surface outgoing longwave
-MforceDay<-(MtempsDay^4)*SB*emi.m #Modern surface outgoing longwave
-
-#New albedo based seasonally dynamic emi calculation. Shouldn't use
-#HforceDay.emi<-sweep((HtempsDay^4)*SB,2,emi.h.dyn,'*')
-#MforceDay.emi<-sweep((MtempsDay^4)*SB,2,emi.m.dyn,'*')
+#0.988 average from lit
+#0.96 original
 
 #Lit based emi's
 emi.db<-read.csv('EMIs_dat.csv')
@@ -168,8 +163,7 @@ paleo.emi[paleo.veg==14,]<-emi.avg[4]
 paleo.emi[paleo.veg==4,]<-emi.avg[3]
 paleo.emi[paleo.veg==5,]<-emi.avg[2]
 paleo.emi[paleo.veg==1,]<-emi.avg[1]
-paleo.emi[,c(1:8,39:46)]<-(paleo.emi[,c(1:8,39:46)] + emi.avg[7])/2
-
+paleo.emi[,c(1:8,39:46)]<-(paleo.emi[,c(1:8,39:46)] + emi.avg[7])/2  #Winter emi is average of snow and veg type (assumes 50% snow cover)
 
 modern.emi<-matrix(NA, nrow(d.temp.month), ncol=46)
 modern.emi[which(!is.na(modern.veg)),]<-mean(emi.avg[1:5])
@@ -178,18 +172,26 @@ modern.emi[modern.veg==14,]<-emi.avg[4]
 modern.emi[modern.veg==4,]<-emi.avg[3]
 modern.emi[modern.veg==5,]<-emi.avg[2]
 modern.emi[modern.veg==1,]<-emi.avg[1]
-modern.emi[,c(1:8,39:46)]<-(modern.emi[,c(1:8,39:46)] + emi.avg[7])/2
+modern.emi[,c(1:8,39:46)]<-(modern.emi[,c(1:8,39:46)] + emi.avg[7])/2  #Winter emi is average of snow and veg type (assumes 50% snow cover)
+#####
 
+#### Daytime (includes emi diagnostics) ####
 
+#With flat emi
+Hforce.o<-(HtempsDay^4)*SB*emi.h #Historic surface outgoing longwave
+Mforce.o<-(MtempsDay^4)*SB*emi.m #Modern surface outgoing longwave
+
+#With lit emi
 Hforce.l<-(HtempsDay^4)*SB*paleo.emi #Historic surface outgoing longwave
 Mforce.l<-(MtempsDay^4)*SB*modern.emi #Modern surface outgoing longwave
 
+#Should probably get LWin adjusted version up here; currently written as a mean
 
-#TEMPORARY
-#HforceDay<-Hforce.l
-#MforceDay<-Mforce.l
+#Assign chosen emi (...force.l vs ...force.o)
+HforceDay<-Hforce.l
+MforceDay<-Mforce.l
 
-
+#Componenet fluxes
 ForcingsDay<-HforceDay-MforceDay  #SURFACE forcings
 AdjforcingDay<-(-368/390)*ForcingsDay #ATMOSPHERIC forcings
 TOAforcingDay<-(22/390)*ForcingsDay #TOA forcings
@@ -197,39 +199,42 @@ TOAforcingDay<-(22/390)*ForcingsDay #TOA forcings
 AdjDay<-colMeans(AdjforcingDay, na.rm=TRUE)
 TOADay<-colMeans(TOAforcingDay, na.rm=TRUE)
 SURFDay<-colMeans(ForcingsDay, na.rm=TRUE)
-#New 1/30. Plot all emi options
-forcing.l<-colMeans(Hforce.l-Mforce.l, na.rm=TRUE)
-forcing.o<-colMeans(HforceDay-MforceDay, na.rm=TRUE)
-#forcing.a<-colMeans(HforceDay.emi-MforceDay.emi, na.rm=TRUE)
 
-lwin_dum<-approx(c(260,264,288,297,334,362,374,377,358,326,301,265)+15, n=46)$y #manually added LWin from syv tower data
-
-forcing.l2<-forcing.l+(colMeans(modern.emi-paleo.emi, na.rm=TRUE)*lwin_dum)
-
-plot(-forcing.o, type='l', ylim=c(-5,8), lwd=3, main='LWforcing(day)')
-lines(-forcing.l, col='red', lwd=3, lty=2)
-#lines(-forcing.a, col='blue', lwd=3)#need to run get_EMIs for this one.
-lines(-forcing.l2, col='green', lwd=3, lty=3)
-abline(h=0)
-legend(15,0,legend=c('albedo-based','original (static)','veg based (lit))', "veg based+lw_in"), 
-       lwd=2, col=c('blue','black','red', 'green'), cex=0.5, bty='n', ncol=2)
-
-mean(-forcing.o)
-mean(-forcing.a)
-mean(-forcing.l)
-mean(-forcing.l2)
-
-#New 1/22. Plot component fluxes day
-plot(SURFDay, ylim=c(-8,5), type='l', ylab='LW components', main='Day')
+#Plot component fluxes day
+if(diag.plots==TRUE){
+plot(SURFDay, ylim=c(-8,8), type='l', ylab='LW components', main='Day')
 lines(TOADay, col='light blue')
 lines(AdjDay, col='red')
 
 legend(0,-2, legend = c("Surface; (-) means more heat out", 'TOA; (-) means more heat out', 'ATM; (+) means more trapped, i.e. less out'), 
        col=c('black', 'light blue', 'red'), lwd=1, cex=0.5, bty='n')
+}
 
-#Nighttime
-HforceNight<-(HtempsNight^4)*SB*emi.h
-MforceNight<-(MtempsNight^4)*SB*emi.m
+#Plot all emi options
+forcing.l<-colMeans(Hforce.l-Mforce.l, na.rm=TRUE)
+forcing.o<-colMeans(Hforce.o-Mforce.o, na.rm=TRUE)
+
+#Forcing including longwave 'albedo'
+lwin_dum<-approx(c(260,264,288,297,334,362,374,377,358,326,301,265)+15, n=46)$y #manually added LWin from syv tower data
+forcing.l2<-forcing.l+(colMeans(modern.emi-paleo.emi, na.rm=TRUE)*lwin_dum)
+
+if(diag.plots==TRUE){
+plot(-forcing.o, type='l', ylim=c(-5,8), lwd=3, main='LWforcing(day)')
+lines(-forcing.l, col='red', lwd=3, lty=2)
+lines(-forcing.l2, col='green', lwd=3, lty=3)
+abline(h=0)
+legend(15,0,legend=c('albedo-based','original (static)','veg based (lit))', "veg based+lw_in"), 
+       lwd=2, col=c('blue','black','red', 'green'), cex=0.5, bty='n', ncol=2)
+}
+mean(-forcing.o)
+mean(-forcing.l)
+mean(-forcing.l2)
+#####
+
+#### Nighttime, just uses chosen scheme (lit based) ####
+
+HforceNight<-(HtempsNight^4)*SB*paleo.emi
+MforceNight<-(MtempsNight^4)*SB*modern.emi
 
 ForcingsNight<-HforceNight-MforceNight
 AdjforcingNight<-(-368/390)*ForcingsNight
@@ -239,30 +244,23 @@ AdjNight<-colMeans(AdjforcingNight, na.rm=TRUE)
 TOANight<-colMeans(TOAforcingNight, na.rm=TRUE)
 SURFNight<-colMeans(ForcingsNight, na.rm=TRUE)
 
-#New 1/22. Plot component fluxes night
-plot(SURFNight, ylim=c(-8,5), type='l', ylab='LW components', main='Night')
+
+if(diag.plots==TRUE){
+  plot(SURFNight, ylim=c(-8,5), type='l', ylab='LW components', main='Night')
 lines(TOANight, col='light blue')
 lines(AdjNight, col='red')
 
 legend(0,-2, legend = c("Surface; (-) means more heat out", 'TOA; (-) means more heat out', 'ATM; (+) means more trapped, i.e. less out'), 
        col=c('black', 'light blue', 'red'), lwd=1, cex=0.5, bty='n')
+}
 
-
-
-#No weight (old v1)
-#TableForce<-(AdjforcingDay+AdjforcingNight)/2
-#No weight (old v2):
-#STNetForce=(AdjNight+AdjDay)/2
-#STNetForce<-(AdjDay*useweight_force$y)+(AdjNight*(1-useweight_force$y))
-
-#Tabular all forcings (New)
-# ***Need to do this bit for other component fluxes as well***
-
+#Tabular all forcings (Current)
 #Weighting
 Tabweight<-matrix(nrow=24534,ncol=46, data=rep(useweight_force$y, each=24534))
 TableForce<-data.frame(AdjforcingDay*Tabweight+AdjforcingNight*(1-Tabweight))
 TableForce_long<-TableForce
-plot(colMeans(TableForce_long, na.rm=TRUE), type='l')
+if(diag.plots==TRUE){plot(colMeans(TableForce_long, na.rm=TRUE), type='l')}
+#####
 
 ####Radiative forcing to month####
 rf.temp.jan<-rowMeans(TableForce[1:4],na.rm=TRUE)
@@ -282,31 +280,22 @@ rf.temp.month<-data.frame(cbind(rf.temp.jan,rf.temp.feb,rf.temp.mar,rf.temp.apr,
 #plot(colMeans(rf.temp.month, na.rm=TRUE),type='l')
 #####
 
+## Summary arrays ##
+
 TableForce<-rf.temp.month #Monthly full weighted fluxes
 TabRF<-colMeans(TableForce, na.rm=TRUE)
+
+TabPix<-rowMeans(TableForce, na.rm=TRUE) #Yearly averages for each pixel
+quantile(TabPix, c(0.1,0.9), na.rm=TRUE) #And its 'uncertainty'
 
 #Write CSV for forcing standardization
 #STForceDat<-cbind(Georef,TableForce)
 #write.csv(STForceDat, "WriteFile/STForcing.csv")
 
-TabPix<-rowMeans(TableForce, na.rm=TRUE) #Yearly averages for each pixel
-quantile(TabPix, c(0.1,0.9), na.rm=TRUE) #And its 'uncertainty'
-
-#Get summer and winter #s. I do this 2 ways for some reason. Same #s either way
-#Option 1: Collapse to pixels, subset months, take mean
-SummerRF<-rowMeans(TableForce[,SummerDays]) #Summer avgs for each pixel
-mean(SummerRF, na.rm=TRUE)
-quantile(SummerRF, c(0.1,0.9), na.rm=TRUE)
-
-WinterRF<-rowMeans(TableForce[,WinterDays])
-mean(WinterRF, na.rm=TRUE)
-quantile(WinterRF, c(0.1,0.9), na.rm=TRUE)
-
-#Option 2: Collapse to months (collapse spatial) and average
+#Summer and winter #s. 
 STNetForceTab<-TabRF
 mean(STNetForceTab[WinterDays]) 
 mean(STNetForceTab[SummerDays])
-
 
 ####Apply vegetation conversion subsetting to Surface Temp####
 
@@ -335,20 +324,21 @@ colnames(var.scl.force)<-poss
 #Sum across veg conversions
 uncertainty.force<-rowSums(var.scl.force, na.rm=TRUE)
 uncertainty.lst<-rowSums(var.scl.lst, na.rm=TRUE)
+#####
 
-
-###Deforest and Comp shift figure###
+###Deforest and Comp shift###
 
 STForce.veg<-cbind(TableForce, convert.code)
 STChg.veg<-cbind(TableDiffs, convert.code)
 
+#### Veg shift Subsetting ####
 
-###ALL the plotsDeforest<-c(7:11,13,21,22,25)    #This one is EG, MX, or DC forest to C, M, or U only
+Deforest<-c(7:11,13,21,22,25)    #This one is EG, MX, or DC forest to C, M, or U only
 Deforest.2<-c(-2,7:13,21,22,25)  #This one includes mosaic to urban and mosaic to crop
 Comp<-c(-1,3,4) #This one is E to MX, E to DC, or MX to DC
 Urb<-c(12,14,21,22,25)
 
-#Subset for deforested areas
+## Deforestation ##
 STForce.def<-STForce.veg[which(STForce.veg[,13]%in%Deforest),]
 STForce.avg.def<-colMeans(STForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
@@ -367,12 +357,11 @@ subset.darkdef<-defplace[which(defplace%in%nosnowplace)]
 STForce.nosnow<-STForce.veg[subset.darkdef,]
 STForce.nosnow.avg<-colMeans(STForce.nosnow[1:12], na.rm=TRUE)
 
-#Subset for composition shift
+## Composition shift ##
 STForce.comp<-STForce.veg[which(STForce.veg[,13]%in%Comp),]
 STForce.avg.comp<-colMeans(STForce.comp[,1:12], na.rm=TRUE)
 var.scl.comp<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Comp)]
 uncertainty.comp<-rowSums(var.scl.comp)
-
 
 STChg.comp<-STChg.veg[which(STChg.veg[,13]%in%Comp),]
 STChg.comp.avg<-colMeans(STChg.comp[1:12], na.rm=TRUE)
@@ -381,14 +370,14 @@ mean(STChg.comp.avg[c(1:2,12)])
 mean(STChg.comp.avg[c(6:8)])
 
 
+#### Veg shift Plots ####
 
-#Deforestation forcing
 # These numbers should be the reverse of albedo, i.e. -2 to 6 becomes -6 to 2
 l.max<-14
 l.min<--5
 span<-c(l.min, l.max)
 
-
+## Deforestation ##
 par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
 plot(STForce.avg.def, type='l', col='orange', ylim=span, lwd=2, main="Deforestation",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
@@ -402,7 +391,7 @@ box(lwd=3)
 abline(h=0, col='red4', lty=2, lwd=3)
 # lines(STForce.nosnow.avg, lwd=2)
 
-#Comp shift forcing
+## Composition Shift ##
 ylab<-expression(RF~(Wm^-2))
 plot(STForce.avg.comp, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
@@ -416,7 +405,12 @@ box(lwd=3)
 abline(h=0, col='red4', lty=2, lwd=3)
 
 par(xpd=FALSE)
+#####
 
+
+### Regional ###
+
+#### Regional Plots ####
 # Regional ST change
 par(mar=c(5,5,4,2))
 ylab<-expression(Delta~LST~(degree*C))
@@ -446,7 +440,7 @@ box(lwd=3)
 polygon(x=c(1:12,12:1),y=c(smoothRF+1.96*uncertainty.force,rev(smoothRF-1.96*uncertainty.force)),border=NA, col='gray')
 lines(smoothRF, lwd=5) 
 abline(h=0, col='red4', lty=2, lwd=3)
-
+#####
 #write.csv(STNetForce,'WriteFile/ST_dayweight.csv')
 
 

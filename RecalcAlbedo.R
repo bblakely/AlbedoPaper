@@ -11,8 +11,9 @@ ModernAlbRaw<-read.csv('Albedo_Modern1.csv',skip=7)
 PaleoAlbRaw<-read.csv('Albedo_Paleo_v2.csv',skip=7) #older: 'Albedo_Paleo.csv; in 'older data'
 #new: 'Albedo_Paleo_v2.csv'
 
-#Pull georef
+#Pull georeference
 Georef<-ModernAlbRaw[2:nrow(ModernAlbRaw), 5:6]
+Georef.utm<-ModernAlbRaw[2:nrow(ModernAlbRaw), 3:4]
 #Remove comment line, unwanted metadata columns
 ModernAlb<-ModernAlbRaw[2:nrow(ModernAlbRaw),7:52]
 PaleoAlb<-PaleoAlbRaw[2:nrow(PaleoAlbRaw),7:52]

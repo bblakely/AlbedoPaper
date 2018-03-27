@@ -44,50 +44,73 @@ ModDAT<-ModDAT[!is.na(Checkvec),]
 nobs=nrow(EarDAT)
 
 HistAlbs<-matrix(nrow=nobs,ncol=12)
+Shifts<-matrix(nrow=nobs,ncol=12)
+
+#Parameters for how to calc snow forcing
+
+#Set to 'TRUE' when you want to normalize by max total snow (across H and M) and false when you want to normalize by H and M individually
+#TRUE makes larger trends
+Allmax<-TRUE 
+
+#Set to 'TRUE' when you want to limit forcing to spring only. This is most useful when Allmax is false;
+#When Allmax is true, Modern tends to get *darker* in winter becasue of the timing of its seasonal peak
+SprOnly<-FALSE
+
+#Set to "TRUE" when you want shift plots for diagnosis or sup. figures
+Diagplot<-TRUE
+#Set of plots, will only be used when Diagplot is true
+plots<-sample(1:nrow(HistAlbs),20)
 
 for (n in 1:nobs){
-######
-  #nrow(AlbedoDAT)
-  Epix<-unlist(EarDAT[n,1:12])
-  Mpix<-unlist(ModDAT[n,1:12])
-  Apix<-unlist(AlbedoDAT[n,1:12])
   
+  Epix<-unlist(EarDAT[n,1:12]) #Historic swe at pixel
+  Mpix<-unlist(ModDAT[n,1:12]) #Modern swe at pixel
+  Apix<-unlist(AlbedoDAT[n,1:12]) #Albedo at pixel
+  
+  #Trumax for versions where we normalize by max total snow
   Allsnow<-c(Epix,Mpix)
   Trumax<-max(Allsnow, na.rm=TRUE)
 
-  Enorm<-Epix/max(Epix, na.rm=TRUE)  
-  #Esmooth<-approx(Enorm, n=46)
-  Escale<-Enorm
-  #Esmooth$y
+  #Normalized historic and modern snow
+  if(Allmax==TRUE){
+    norm.e<-norm.m<-Trumax
+    }else{
+      norm.e==max(Epix, na.rm=TRUE)
+      norm.m==max (Mpix, na.rm=TRUE)}
+  
+  Enorm<-Epix/norm.e 
+  Escale<-Enorm #Rename, legacy of older script.
 
-  Mnorm<-Mpix/max(Mpix, na.rm=TRUE)
-  #Msmooth<-approx(Mnorm, n=46)
+  Mnorm<-Mpix/norm.m
   Mscale<-Mnorm
-    #Msmooth$y
+
   
   Scalars<-(Escale-Mscale)
-    #((Escale-Mscale)/Escale)
+  #((Escale-Mscale)/Escale) #This creates exponential behavior when Escale is small
+  
   AlbRange=(max(Apix, na.rm=TRUE)-min(Apix, na.rm=TRUE))
   
   HistAlb<-Apix+(Scalars*AlbRange)
-  index=c(1:2,10:12)
-  #which(HistAlb <= Apix)
+  
+  if(SprOnly==TRUE){
+  index=c(1:2,10:12) 
+  which(HistAlb <= Apix)
   HistAlb[index]<-Apix[index]
+  }
   
   HistAlbs[n,]<-HistAlb
-#######  
-  ###Plotting Commands. Comment out for speed
-  start<-1
-  end<-6
-  shift.mag<-as.matrix(HistAlbs-AlbedoDAT)
-  shift.avg<-rowMeans(shift.mag[,start:end])
-  shift.quant<-quantile(shift.avg, .95, na.rm=TRUE)
-  shift.large<-which(shift.avg > shift.quant)
-  plots<-sample(shift.large,20)
-   #if (any(n == plots)){
-    if (n == 3424){
+  Shifts[n,]<-Scalars
+
+  if(Diagplot==TRUE){
+    
+  start<-1 #Month to start display
+  end<-6 #Month to end display
+
+   if (any(n == plots)){
+     print(paste("plot match on", n))
+    #if (n == 3424){
     plot(Escale,type='l',lty=2, lwd=2, xlab='Month',
-       main=paste('Albedo Shift', n), col='white', ylim=c(.1,.65), pch=1.5,
+       main=paste('Albedo Shift', n), col='white', ylim=c(.1,.8), pch=1.5,
        ylab='Albdeo', xlim=c(1,6),font=2, font.lab=2)
 
   #axis(1,at=seq(from=1, to=12,length.out=12),labels=c(1:12))
@@ -97,29 +120,44 @@ for (n in 1:nobs){
   lines(Apix, col='purple',lty=2, lwd=2)
   lines(HistAlb, col='orange', lwd=2)
   box(lwd=3)
-  
-  plot(Epix, type='l', main='SWE',xlim=c(1,6), lwd=2,xlab='Month',ylab='SWE', 
+
+  plot(Epix, type='l', main='SWE',xlim=c(1,6), lwd=2,xlab='Month',ylab='SWE',
        font=2, font.lab=2)
   lines(Mpix, col='red', lwd=2)
   legend(4.6,y=max(Epix), legend=c('2000 - 2010', '1900 - 1910'),
          col=c('red', 'black'), lwd=2, text.font=2, cex=0.8)
   box(lwd=3)
-  
+
+  #Normalized SWE
   plot(Enorm, type='l', main='Normalized SWE',xlim=c(1,6), ylab='% Maximum SWE',
         lwd=2,xlab='Month',font=2, font.lab=2)
   lines(Mnorm, col='red', lwd=2)
   legend(4.6,1, legend=c('2000 - 2010', '1900 - 1910'),
           col=c('red', 'black'), lwd=2, text.font=2, cex=0.8)
   box(lwd=3)
-  
-  print(paste('M', Mnorm[3], n))
-  print(paste('H', Enorm[3], n))
-  print(paste('A', Apix[3], n))
-  print(paste('RG', AlbRange, n))
-  print(paste('S', HistAlb[3],n))
+
+  #print(paste('M', Mnorm[3], n))
+  #print(paste('H', Enorm[3], n))
+  #print(paste('A', Apix[3], n))
+  #print(paste('RG', AlbRange, n))
+  #print(paste('S', HistAlb[3],n))
 
  }
+  }
 }
+
+
+####Fill this out at some point to get large plots####
+
+#shift.mag<-as.matrix(HistAlbs-AlbedoDAT) # All changes in albedo
+#shift.avg<-rowMeans(shift.mag[,start:end]) #Avg changes in albdeo (per pixel)
+#shift.quant<-quantile(shift.avg, .95, na.rm=TRUE) #Places with large changes in albedo
+#shift.large<-which(shift.avg > shift.quant) #Create selection to make clearest plots for supplement
+
+#demoplot<-sample(shift.large, 5)
+#for (p in demoplot){
+#}
+#####
 
 HistAlbAvg=colMeans(HistAlbs, na.rm=TRUE)
 ModAlbAvg=colMeans(AlbedoDAT)
@@ -128,40 +166,42 @@ AlbedoDiffs<-HistAlbs-AlbedoDAT
 #385 looks good
 #####Albedo Change plots####
 #spring
-Histsm<-approx(HistAlbAvg[1:20], n=10)
-Modsm<-approx(ModAlbAvg[1:20],n=10)
+Histsm<-HistAlbAvg[1:6]
+Modsm<-ModAlbAvg [1:6]
 
-plot(Histsm, type='l',ylim=c(0.13,0.36), main='Spring Albedo Shift', cex.main=2.0,ylab='Mean Albedo', xlab='Month', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+plot(Histsm, type='l',ylim=c(0.1,0.4), main='Spring Albedo Shift', cex.main=2.0,ylab='Mean Albedo', xlab='Month', cex.lab=2.2,yaxt='n',xaxt='n', bty='n', col='white')
 lines(Modsm, col='red 4', lwd=5)
-xaxis<-approx(c(1:20), n=5)
-axis(side=1,labels=c(1:5),at=xaxis$y, cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=0.15, to=0.36, by=0.05), at=seq(from=0.15, to=0.36, by=0.05), cex.axis=1.5, font=2)
+xaxis<-c(1:6)
+  #approx(c(1:20), n=5)
+axis(side=1,labels=c(1:6),at=c(1:6), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=0.15, to=0.4, by=0.05), at=seq(from=0.15, to=0.4, by=0.05), cex.axis=1.5, font=2)
 box(lwd=3)
-lines(Histsm[1:20], lwd=5)
+lines(Histsm[1:20], lwd=5, lty=2)
 
-legend(x=12.5,y=0.35,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
+legend(x=3,y=0.4,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
 
 #Fall
 
-Histsm<-approx(HistAlbAvg[36:46], n=5)
-Modsm<-approx(ModAlbAvg[36:46],n=5)
+Histsm<-HistAlbAvg[6:12]
+Modsm<-ModAlbAvg [6:12]
 
-plot(Histsm, type='l',ylim=c(0.13,0.3), main='Fall Albedo Shift', cex.main=2.0,ylab='Mean Albedo', xlab='Month', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+plot(Histsm, type='l',ylim=c(0.1,0.4), main='Fall Albedo Shift', cex.main=2.0,ylab='Mean Albedo', xlab='Month', cex.lab=2.2,yaxt='n',xaxt='n', bty='n', col='white')
 lines(Modsm, col='red 4', lwd=5)
-xaxis<-approx(c(1:10), n=3)
-axis(side=1,labels=c(10:12),at=xaxis$y, cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=0.10, to=0.3, by=0.05), at=seq(from=0.10, to=0.3, by=0.05), cex.axis=1.5, font=2)
-box(,lwd=3)a
-lines(Histsm[1:20], lwd=5)
+xaxis<-c(6:12)
+#approx(c(1:20), n=5)
+axis(side=1,labels=c(6:12),at=c(6:12), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=0.15, to=0.4, by=0.05), at=seq(from=0.15, to=0.4, by=0.05), cex.axis=1.5, font=2)
+box(lwd=3)
+lines(Histsm[1:20], lwd=5, lty=2)
+legend(x=3,y=0.4,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
 
-legend(x=1.1,y=0.29,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
-
-
+if(Diagplot==TRUE){
 AlbedoDiffs<-HistAlbs-(AlbedoDAT[,1:12])
 AvgDiffs<-colMeans(AlbedoDiffs, na.rm=TRUE)
 plot(AvgDiffs, type='l', main='albedo change')
+}
 #####
-####Bring in Solar####
+#### Bring in Solar ####
 #Bring in transmittance
 
 Trans<-read.csv('Transmittance.csv', skip=7)
@@ -192,7 +232,7 @@ Insol.avg<-colMeans(Months.insol)
 InsolPicks<-unname(Insol.avg)
 TransPicks<-mean(Trans.avg)
 #####
-#Calculate RF
+#### Calculate RF ####
 TabInsol<-matrix(nrow=nrow(AlbedoDAT),ncol=12, data=rep(InsolPicks, each=nrow(AlbedoDAT)))
 TableRF<-(AlbedoDiffs)*TabInsol*(TransPicks^2)
 TablePix<-rowMeans(TableRF)
@@ -204,9 +244,10 @@ AvgRF<-colMeans(TableRF)
 #SnowAlbForce<-cbind(Georef_shift, TableRF)
 #names(SnowAlbForce)<-c("Lat","Lon","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 #write.csv(SnowAlbForce,"SnowAlbedoForce.csv")
+#####
 
-
-##PlotRF
+#### PLOTS ####
+## PlotRF ##
 top=c(1:12)
 bottom=c(1:12)
 
@@ -240,6 +281,7 @@ box(lwd=3)
 polygon(x=c(1:12,12:1),y=c(smtop,rev(smbottom)),border=NA, col='gray')
 lines(AvgRF, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
+#####
 
 write.csv(AvgRF,'WriteFile/SnowForcing1.csv')
 
@@ -270,6 +312,10 @@ quantile(rowMeans(TableRF[,SpringDays]), c(0.1,0.9))
 #mean(AvgDiffs[SpringDays], na.rm=TRUE)
 #mean(AvgDiffs[WinterDays], na.rm=TRUE)
 
- 
+for(p in 1:12){
+  #print(which(HistAlbs[,p]<0))
+  print(length(which(Shifts[,p]<0)))
+  hist(Shifts[,p], xlim=c(-0.5,0.5), main=p)
+}
 
 

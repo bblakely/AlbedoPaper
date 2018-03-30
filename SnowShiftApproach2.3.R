@@ -314,7 +314,7 @@ quantile(rowMeans(TableRF[,SpringDays]), c(0.1,0.9))
 
 for(p in 1:12){
   #print(which(HistAlbs[,p]<0))
-  print(length(which(Shifts[,p]<0)))
+  print(length(which(Shifts[,p]<0))/nobs)
   hist(Shifts[,p], xlim=c(-0.5,0.5), main=p)
 }
 

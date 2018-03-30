@@ -12,7 +12,9 @@ st.force<-data.frame(TableForce)
 
 veg.force<-data.frame(alb.force+st.force)
 
-rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "Georef", "Georef.utm", "convert.code", "writefile", "veg.force")))
+rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "veg.force",
+                        "Georef", "Georef.utm", "convert.code", "writefile",
+                        "Deforest","Deforest.2", "Comp")))
 
 #Seasonal profiles
 
@@ -153,18 +155,69 @@ if(writefile==TRUE){
 key<-read.csv('convertcode_key.csv')
 par(mfrow=c(2,2))
 par(mar=c(2,3,2,2))
-for(i in 1:nrow(key)){
-  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-30,30), ylab='forcing', lty=2, main=paste(key$PAL[i],"to",key$MOD[i]), type='l', col='dark blue')
-  lines(colMeans(st.force[convert.code==key$Code[i],], na.rm=TRUE), lty=2, col='dark red')
+
+dest<-order(key$MOD)
+
+for(i in dest){
+  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-30,30), ylab='forcing', lty=2,lwd=2, 
+       main=paste(key$PAL[i],"to",key$MOD[i]), type='l', col='dark gray', font=2)
+  lines(colMeans(st.force[convert.code==key$Code[i],], na.rm=TRUE), lty=2, col='forest green', lwd=2)
   lines(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE), lwd=3)
   abline(h=0, col='red')
   text(9,20, paste("n=",length(which(convert.code==key$Code[i]))," (",
                     round((length(which(convert.code==key$Code[i]))/length(which(!is.na(convert.code)))),3)*100,"%",
-                    ")", sep=''), cex=0.8)
-  text(9,-20, paste("Veg RF:", 
+                    ")", sep=''), cex=0.8, font=2)
+  text(8,-20, paste("Annual RF:", 
                     round(mean(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE)),3)),
-                    cex=0.8)
+                    cex=0.8, font=2)
+  box(lwd=3)
   
 }
+
+
+length(which(convert.code==0))/length(which(!is.na(convert.code)))
+
+#This is not productive but I'm curious
+
+real<-unique(convert.code)[which(!is.na(unique(convert.code)))]
+newkey<-key[which(key$Code%in%real),]
+newkey<-newkey[order(newkey$Code),]
+
+allveg<-aggregate(veg.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
+
+
+colnames(allveg)[1]<-"Code"
+allveg$PAL<-newkey$PAL;allveg$MOD<-newkey$MOD
+allveg$label<-paste(newkey$PAL, "to", newkey$MOD)
+allveg$sums<-rowSums(allveg[,2:13])
+allveg<-allveg[order(allveg$MOD, allveg$PAL),]
+
+par(mfrow=c(1,1))
+barplot(allveg$sums, names.arg=allveg$label,las=2,cex.lab=0.8)
+
+
+# Def<-which(allveg$Code%in%Deforest)
+# Def.2<-which(allveg$Code%in%Deforest.2)
+# Comps<-which(allveg$Code%in%Comp)
+# 
+# Reforest<-(-Deforest)[1:6]
+# Reforest.2<-(-Deforest.2)[1:7]
+# Revcomp<-(-Comp)
+# Ref<-which(allveg$Code%in%Reforest)
+# Ref.2<-which(allveg$Code%in%Reforest.2)
+# Revcomps<-which(allveg$Code%in%Revcomp)
+# 
+# par(mfrow=c(2,2))
+# 
+# barplot(allveg$sums[Def.2], names.arg=allveg$label[Def.2], ylim=c(-30000, 5000))
+# abline(h=0, col='dark red', lwd=2)
+# barplot(allveg$sums[Comps], names.arg=allveg$label[Comps], ylim=c(-30000, 5000))
+# abline(h=0, col='dark red', lwd=2)
+# barplot(allveg$sums[Ref.2], names.arg=allveg$label[Ref.2], ylim=c(-30000, 5000))
+# abline(h=0, col='dark red', lwd=2)
+# barplot(allveg$sums[Revcomps], names.arg=allveg$label[Revcomps], ylim=c(-30000, 5000))
+# abline(h=0, col='dark red', lwd=2)
+
+
 
 

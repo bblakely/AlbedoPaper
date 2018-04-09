@@ -81,42 +81,52 @@ barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann), col=c("gray","forest green",
         font=2,ylim=c(-2.5,1),cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE, add=T)
 
-text(labloc,0.8,c(expression(alpha),"LST",expression(alpha),"LST"), font=2, cex=2.2)
+text(labloc,0.6,c(expression(alpha),"LST",expression(alpha),"LST"), font=2, cex=2.2)
 abline(v=2.5, lwd=3, lty=3)
 text(labloc[2],-1,"VEG", cex=2.5, font=2)
 text(mean(c(labloc[3], labloc[4])),-1,"SNOW", cex=2.5, font=2)
 
-axis(side=4, labels=seq(from=-2, to=0.5, by=0.5), at=seq(from=-2, to=0.5, by=0.5), cex.axis=2.2, font=2)
+axis(side=4, labels=seq(from=-2, to=0.8, by=0.5), at=seq(from=-2, to=0.8, by=0.5), cex.axis=2.2, font=2)
 #mtext(side=2, text=ylab, line=2.5, cex=2.4, font=2)
 abline(h=0, lwd=3)
 box(lwd=3)
+
+#When exporting, 1050 x 750 works well
 
 #### Combined Plots ####
 veg.comb<-alb.ann+st.ann
 sno.comb<-snow.st.ann+snow.alb.ann
 Tot.ann<-Tot.ann #Already made for little plot
 
+#Setting type to 'inset' makes a plot where the individual plot (above) can be used as an inset;
+#Otherwiser it is sized to be a stand-alone plot
+type<-'inset'
+if(type=='inset'){ylim=c(-2,3)}else{ylim=c(-2,1)}
+
 barplot(c(Tot.ann, veg.comb,sno.comb),col=c("black","gray","dark blue"),  
         main="Combined RF",names.arg=c("Combined","Vegetation","Snow"), font=2,
-        ylim=c(-2,1),cex.main=3, cex.axis=2,cex.names=2, ylab='',
+        ylim=ylim,cex.main=3, cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE)
 
 abline(h=seq(from=-1.5,to=3,by=0.5), lty=2,col='light gray')
 
 barplot(c(Tot.ann, veg.comb,sno.comb),col=c("black","gray","dark blue"), 
         main="Combined RF",names.arg=c("Combined","Vegetation","Snow"), font=2,
-        ylim=c(-2,1),cex.main=3, cex.axis=2,cex.names=2, ylab='',
+        ylim=ylim,cex.main=3, cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE, add=T)
 
 barplot(c(Tot.ann, veg.comb,sno.comb), density=c(0,20,50),col=c("black","forest green","light blue"), 
         main="Combined RF",names.arg=c("Combined","Vegetation","Snow"), font=2,
-        ylim=c(-2,1),cex.main=3, cex.axis=2,cex.names=2, ylab='',
+        ylim=ylim,cex.main=3, cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE, add=TRUE)
 
 axis(side=2, labels=seq(from=-2, to=3, by=1), at=seq(from=-2, to=3, by=1), cex.axis=1.8, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2.5, font=2)
 abline(h=0, lwd=3)
 box(lwd=3)
+
+#When exporting, 800 x 640 works well
+
 #####
 
 

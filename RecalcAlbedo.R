@@ -186,8 +186,8 @@ AlbChange.def<-AlbChange.veg[which(AlbForce.veg[,13]%in%Deforest),]
 mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
 
 #Set flexible plot limit params
-l.max<-5
-l.min<--14
+l.max<-9
+l.min<-(-15)
 span<-c(l.min, l.max)
 
 ##Actual plotting
@@ -197,7 +197,7 @@ ylab<-expression(RF~(Wm^-2))
 plot(AlbForce.avg.def, type='l', col='orange', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=l.min, to=l.max, by=4), at=seq(from=l.min, to=l.max, by=4), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
@@ -222,7 +222,7 @@ ylab<-expression(RF~(Wm^-2))
 plot(AlbForce.avg.comp, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=l.min, to=l.max, by=4), at=seq(from=l.min, to=l.max, by=4), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)

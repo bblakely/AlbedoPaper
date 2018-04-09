@@ -50,7 +50,7 @@ Shifts<-matrix(nrow=nobs,ncol=12)
 
 #Set to 'TRUE' when you want to normalize by max total snow (across H and M) and false when you want to normalize by H and M individually
 #TRUE makes larger trends
-Allmax<-TRUE 
+Allmax<-TRUE
 
 #Set to 'TRUE' when you want to limit forcing to spring only. This is most useful when Allmax is false;
 #When Allmax is true, Modern tends to get *darker* in winter becasue of the timing of its seasonal peak
@@ -59,7 +59,9 @@ SprOnly<-FALSE
 #Set to "TRUE" when you want shift plots for diagnosis or sup. figures
 Diagplot<-TRUE
 #Set of plots, will only be used when Diagplot is true
+
 plots<-sample(1:nrow(HistAlbs),20)
+
 
 for (n in 1:nobs){
   

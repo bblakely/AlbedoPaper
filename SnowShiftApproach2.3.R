@@ -4,20 +4,23 @@ ModAlbedo<-read.csv('Albedo_Modern_Snowanalysis.csv', skip=7)
 HistAlbedo<-read.csv('Albedo_Paleo_Snowanalysis.csv', skip=7)
 DatAlbedo<-read.csv('Modis_Snowanalysis.csv',skip=7)
 
+#Clip to area of interest
 Albedo<-HistAlbedo
 Albedo<-Albedo[Albedo$Lon<(-75),]
 
 AlbedoDAT<-Albedo[2:nrow(Albedo),5:50]
 AlbedoDAT[AlbedoDAT==9999]<-NaN
 
+#Clear out pixels with no data
+#Currently removes pixels with *any* NA dates; using a narm on the sum would allow for some missing dates
 Checkvec=rowSums(AlbedoDAT)
-
 AlbedoDAT<-AlbedoDAT[!is.na(Checkvec),]
+
 Georef<-Albedo[!is.na(Checkvec),3:4]
 Georef_shift<-Georef
-Georef_shift$Lon<-Georef_shift$Lon+0.2
+Georef_shift$Lon<-Georef_shift$Lon+0.2 #Not sure why this is done; there must be a misalignment somewhere
 
-####To months####
+####Albedo to months####
 alb.jan<-rowMeans(AlbedoDAT[1:4],na.rm=TRUE)
 alb.feb<-rowMeans(AlbedoDAT[5:8],na.rm=TRUE)
 alb.mar<-rowMeans(AlbedoDAT[9:12],na.rm=TRUE)
@@ -32,9 +35,14 @@ alb.nov<-rowMeans(AlbedoDAT[39:42],na.rm=TRUE)
 alb.dec<-rowMeans(AlbedoDAT[43:46],na.rm=TRUE)
 alb.month<-data.frame(cbind(alb.jan,alb.feb,alb.mar,alb.apr,alb.may,
                               alb.jun,alb.jul,alb.aug,alb.sep,alb.oct,alb.nov,alb.dec))
+
+rm('alb.jan','alb.feb','alb.mar','alb.apr','alb.may','alb.jun','alb.jul','alb.aug','alb.sep','alb.oct','alb.nov','alb.dec')
+
+
 ######
 AlbedoDAT<-alb.month
 
+#Clip off IDL line and georef info
 EarDAT<-Early[2:nrow(Early),5:16]
 EarDAT<-EarDAT[!is.na(Checkvec),]
 
@@ -50,16 +58,15 @@ Shifts<-matrix(nrow=nobs,ncol=12)
 
 #Set to 'TRUE' when you want to normalize by max total snow (across H and M) and false when you want to normalize by H and M individually
 #TRUE makes larger trends
-Allmax<-TRUE
+Allmax<-FALSE
 
 #Set to 'TRUE' when you want to limit forcing to spring only. This is most useful when Allmax is false;
 #When Allmax is true, Modern tends to get *darker* in winter becasue of the timing of its seasonal peak
-SprOnly<-FALSE
+SprOnly<-TRUE
 
 #Set to "TRUE" when you want shift plots for diagnosis or sup. figures
 Diagplot<-TRUE
 #Set of plots, will only be used when Diagplot is true
-
 plots<-sample(1:nrow(HistAlbs),20)
 
 
@@ -77,8 +84,8 @@ for (n in 1:nobs){
   if(Allmax==TRUE){
     norm.e<-norm.m<-Trumax
     }else{
-      norm.e==max(Epix, na.rm=TRUE)
-      norm.m==max (Mpix, na.rm=TRUE)}
+      norm.e<-max(Epix, na.rm=TRUE)
+      norm.m<-max(Mpix, na.rm=TRUE)}
   
   Enorm<-Epix/norm.e 
   Escale<-Enorm #Rename, legacy of older script.
@@ -109,8 +116,6 @@ for (n in 1:nobs){
   end<-6 #Month to end display
 
    if (any(n == plots)){
-     print(paste("plot match on", n))
-    #if (n == 3424){
     plot(Escale,type='l',lty=2, lwd=2, xlab='Month',
        main=paste('Albedo Shift', n), col='white', ylim=c(.1,.8), pch=1.5,
        ylab='Albdeo', xlim=c(1,6),font=2, font.lab=2)

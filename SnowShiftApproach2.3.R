@@ -1,11 +1,11 @@
+
 Modern<-read.csv('GHCN_Modern_Snowanalysis.csv', skip=7)
 Early<-read.csv('GHCN_Historic_Snowanalysis.csv', skip=7)
 ModAlbedo<-read.csv('Albedo_Modern_Snowanalysis.csv', skip=7)
 HistAlbedo<-read.csv('Albedo_Paleo_Snowanalysis.csv', skip=7)
 DatAlbedo<-read.csv('Modis_Snowanalysis.csv',skip=7)
 
-dev.off()
-par(mfrow=c(1,1))
+#par<-pardefault
 
 #Clip to area of interest
 Albedo<-HistAlbedo
@@ -68,7 +68,7 @@ Allmax<-FALSE
 SprOnly<-TRUE
 
 #Set to "TRUE" when you want shift plots for diagnosis or sup. figures
-Diagplot<-TRUE
+Diagplot<-FALSE
 #Set of plots, will only be used when Diagplot is true
 plots<-sample(1:nrow(HistAlbs),20)
 
@@ -175,6 +175,7 @@ ModAlbAvg=colMeans(AlbedoDAT)
 AlbedoDiffs<-HistAlbs-AlbedoDAT
 #385 looks good
 #####Albedo Change plots####
+if(Diagplot==TRUE){
 #spring
 Histsm<-HistAlbAvg[1:6]
 Modsm<-ModAlbAvg [1:6]
@@ -205,7 +206,7 @@ box(lwd=3)
 lines(Histsm[1:20], lwd=5, lty=2)
 legend(x=3,y=0.4,legend=c('Non-shifted','Shifted'), lwd=5, col=c('red4','black'))
 
-if(Diagplot==TRUE){
+
 AlbedoDiffs<-HistAlbs-(AlbedoDAT[,1:12])
 AvgDiffs<-colMeans(AlbedoDiffs, na.rm=TRUE)
 plot(AvgDiffs, type='l', main='albedo change')
@@ -293,11 +294,10 @@ abline(h=0, col='red4', lty=2, lwd=3)
 
 write.csv(AvgRF,'WriteFile/SnowForcing1.csv')
 
-dev.off()
 
-#mean(AvgRF[AvgRF!=0])
-#plot(AvgRF, type='l' )
+AvgRF->AlbSnowRF  #Rename to keep in CombineForce
 
+#### Misc. Details. Seasonal numbers and averages ####
 #Snow covered season length
 
 ModLengths<-rep(0,nrow(ModDAT))
@@ -322,18 +322,20 @@ quantile(rowMeans(TableRF[,SpringDays]), c(0.1,0.9))
 #mean(AvgDiffs[SpringDays], na.rm=TRUE)
 #mean(AvgDiffs[WinterDays], na.rm=TRUE)
 
+#histograms of negative and positive shifts
+if(Diagplot==TRUE){
 for(p in 1:12){
   #print(which(HistAlbs[,p]<0))
   print(length(which(Shifts[,p]<0))/nobs)
   hist(Shifts[,p], xlim=c(-0.5,0.5), main=p)
 }
+}
+
+#####
 
 
-#Experiment with plots of season lenghts
-
-#length<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, ModLengths-EarLengths))
-#plot(length, useRaster=FALSE, main='change in months with nonzero snow')
-
+#####Raster plotting. Seasonal lengths, monthly plots. Doesn't plot without diagplot on ####
+if (Diagplot==TRUE){
 #Using seasonal shift scalars
 plotshift<-function(datinput, monthabbr, col=rev(colorRampPalette(c("dark red", "beige","forest green"))(10))){
   shifty<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat,datinput))
@@ -343,8 +345,7 @@ plotshift<-function(datinput, monthabbr, col=rev(colorRampPalette(c("dark red", 
 par(mfrow=c(2,2))
 plotshift(Shifts[,3],'Mar');plotshift(Shifts[,4],'Apr');plotshift(Shifts[,5],'May')
 par(mfrow=c(1,1))
-
-dev.off()
+}
 
 #Using DOYs with snow
 
@@ -382,7 +383,7 @@ palabs.red<-colorRampPalette(c("dark red","beige")) #For things on one side of z
 palabs.blue<-colorRampPalette(c("dark blue","beige"))
 paldiff<-colorRampPalette(c("dark red", "beige","forest green")) #When you have a span on either side of zero, usually for diffs.
 
-# Plots for date of melt
+# Plots for date of melt. The *8 in all of these is to convert from MODIS dates to days (~8 days per date)
 if (Diagplot==TRUE){
 par(mfrow=c(1,2))
 plot(edates.ra*8, useRaster=FALSE,col=rev(palabs.blue(10)), breaks=seq(10*8,20*8,length.out=11), main='DOY of melt')
@@ -407,3 +408,7 @@ for(i in c(11:12, 1:5)){
   
 }
 }
+#####
+
+
+

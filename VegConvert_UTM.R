@@ -43,7 +43,8 @@ paleo.veg[paleo.veg==9999]<-NA
 convert.code<-modern.veg-paleo.veg
 
 #visual sanity check -  none should be > |20|
-hist(convert.code,breaks=25)
+histplot<-FALSE
+if(histplot==TRUE){hist(convert.code,breaks=25)}
 
 #List of unique codes (i.e. unique pairwise conversions)
 poss<-sort(unique(convert.code))

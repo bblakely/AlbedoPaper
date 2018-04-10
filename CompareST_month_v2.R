@@ -126,12 +126,13 @@ mean(AvgDiffs[SummerDays])
 mean(AvgDiffs[WinterDays])
 
 #Plot of non-collapsed weighted temp changes
+if(Diagplot==TRUE){
 plot(AvgDiffs, type='l',ylim=c(-.5,1.3), main='Day and Night ST')
 abline(h=0, lty=2)
 lines(NightDiffu, col='forest green')
 lines(DayDiffu, col='red')
 legend(x=1,y=1, legend=c('Night','Day'), col=c('forest green','red'), lty=c(1,1))
-
+}
 
 #Forcing
 SB=5.67e-8

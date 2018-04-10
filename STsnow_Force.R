@@ -1,11 +1,13 @@
-
-source("Residual_v_snow.R")
+#Call preliminary scripts
+source("Residual_v_snow.R") #Takes a bit
 source("VegConvert_UTM.R") #Was geo for some reason despite the # of records indicating we're un UTM grid here
 snow.mod.raw<-read.csv('GHCN_Snow.csv',skip=7)
 snow.hist.raw<-read.csv('GHCN_Snow_hist.csv',skip=7)
 lst.raw<-read.csv('LST.csv', skip=7)
 
 Georef<-lst.raw[2:nrow(lst.raw),5:6]
+
+Diagplot<-FALSE
 
 #QC
 MOD<-(snow.mod.raw[2:24535,5:18])
@@ -67,7 +69,7 @@ mod.mt<-as.matrix(mod.dat)
 hist.mt<-as.matrix(hist.dat)
 no.nan<-which(!is.na(newmonth.mt[,3]))
 
-#Pull upper quantile of effect for more dramatic figure
+#Pull upper quantile of effect for more dramatic demonstrative figure in supplement
 nmonth<-4
 smonth<-1
 
@@ -80,7 +82,8 @@ plotnum<-sample(shift.large, 20)
   #sample(no.nan, 20)
 
 
-p=4879
+#p=4879
+if(Diagplot==TRUE){
 for(p in plotnum){
   #10824 is what is used for figures as of 1-27
   plot(newmonth.mt[p, c(smonth:nmonth)], type='l', xaxt='n',ylab='LST', xlab='Month', lwd=2, font=2,font.lab=2, main=p, col='orange')
@@ -96,7 +99,7 @@ for(p in plotnum){
   box(lwd=2)
   legend(1,max(hist.mt[p,c(smonth:nmonth)]+55),legend=c('2000 - 2010', '1900 - 1910'), lwd=2, col=c('red','black'), text.font=2, cex=0.8)
   }
-
+}
 sb<-5.67e-8
 
 L1.px<-0.98*sb*lst.month^4
@@ -116,7 +119,7 @@ write.csv(Forcing.std,"WriteFile/SnowSTForcing_STD.csv")
 force.month.num<-colMeans(forcing.px, na.rm=TRUE)
 #put in 0's for non-snow days
 force.month<-c(force.month.num[1:5],rep(0,5),force.month.num[6:7])
-plot(force.month, type='l')
+#plot(force.month, type='l')
 
 ###Apply weighted Uncertainty
 
@@ -139,21 +142,6 @@ var.scl.force<-sweep(var.set.force,2,count.set,'*')
 uncertainty.force<-rowSums(var.scl.force, na.rm=TRUE)
 
 
-
-#Fancy plot
-#get quantiles (there must be a more efficient way of doing this)
-# hiquant<-c(1:7)
-# loquant<-c(1:7)
-# 
-# for (i in 1:7){
-#   quants<-quantile(forcing.px[,i], c(0.1,0.9),na.rm=TRUE)
-#   hiquant[i]<-quants[[2]]
-#   loquant[i]<-quants[[1]]
-# }
-# 
-# hiquant.yr<-c(hiquant[1:5],rep(0,5),hiquant[6:7])
-# loquant.yr<-c(loquant[1:5],rep(0,5),loquant[6:7])
-
 par(mar=c(5,5,4,2))
 plot(force.month, ylim=c(-1.2,2.5), type='l',lwd='3', xaxt='n',yaxt='n',xlab='',ylab='', main='Snow LST RF',cex.lab=2.2, cex.main=2.5,bty="n")
 ylab=expression(RF~(Wm^-2))
@@ -174,3 +162,6 @@ axis(side=1,labels=seq(from=1,to=12,by=2),at=seq(from=1,to=12,by=2),cex.axis=1.5
 quantile(forcing.px[,c(1:2,7)], c(0.1,0.9), na.rm=TRUE) #winter
 quantile(forcing.px[,c(3:5)], c(0.1,0.9), na.rm=TRUE) #spring
 quantile(forcing.year,c(0.1,0.9),na.rm=TRUE) #all year
+
+
+force.month->STSnowRF #Rename for combine force

@@ -1,8 +1,13 @@
 #Redo combine force with real data
 source('RecalcAlbedo.R')
 source('CompareST_month_v2.R')
+source('SnowShiftApproach2.3.R')
+source('STsnow_Force.R')
 
-writefile<-FALSE
+writefile<-FALSE #Do you want to write finalized change and forcing files?
+vegplot<-FALSE #Do you want the 25-odd individual converison plots?
+
+par<-pardefault
 
 alb.diff<-data.frame(d.alb.month)
 st.diff<-data.frame(TableDiffs)
@@ -10,20 +15,24 @@ st.diff<-data.frame(TableDiffs)
 alb.force<-data.frame(AlbForce)
 st.force<-data.frame(TableForce)
 
+snow.force.alb<-AlbSnowRF
+snow.force.st<-STSnowRF
+
 veg.force<-data.frame(alb.force+st.force)
 
 rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "veg.force",
                         "Georef", "Georef.utm", "convert.code", "writefile",
-                        "Deforest","Deforest.2", "Comp")))
+                        "Deforest","Deforest.2", "Comp", "snow.force.alb", 'snow.force.st')))
 
 #Seasonal profiles
 
 alb<-colMeans(alb.force, na.rm=TRUE)
 st<-colMeans(st.force, na.rm=TRUE)
 
-#Need to updates snow so it just calls the scripts
-snow.alb<-c(0,0,0.48,2.67,0.078,0,0,0,0,0,0,0)
-snow.st<-c(0.3871,0.73988,0.70798,0.65542,0.14659,0,0,0,0,0,0.075639,0.19390)
+#Need to update snow ST so it just calls the script
+snow.alb<-snow.force.alb
+snow.st<-snow.force.st
+  #c(0.3871,0.73988,0.70798,0.65542,0.14659,0,0,0,0,0,0.075639,0.19390)
 
 Total<-(alb+st+snow.alb+snow.st)
 offset<-(st+snow.alb+snow.st)
@@ -99,7 +108,7 @@ sno.comb<-snow.st.ann+snow.alb.ann
 Tot.ann<-Tot.ann #Already made for little plot
 
 #Setting type to 'inset' makes a plot where the individual plot (above) can be used as an inset;
-#Otherwiser it is sized to be a stand-alone plot
+#Otherwise it is sized to be a stand-alone plot
 type<-'inset'
 if(type=='inset'){ylim=c(-2,3)}else{ylim=c(-2,1)}
 
@@ -162,6 +171,7 @@ if(writefile==TRUE){
 
 
 #veg subsetting
+if(vegplot==TRUE){
 key<-read.csv('convertcode_key.csv')
 par(mfrow=c(2,2))
 par(mar=c(2,3,2,2))
@@ -183,27 +193,26 @@ for(i in dest){
   box(lwd=3)
   
 }
+}
+length(which(convert.code==0))/length(which(!is.na(convert.code))) #Proportion of no change tiles
 
-
-length(which(convert.code==0))/length(which(!is.na(convert.code)))
-
-#This is not productive but I'm curious
-
-real<-unique(convert.code)[which(!is.na(unique(convert.code)))]
-newkey<-key[which(key$Code%in%real),]
-newkey<-newkey[order(newkey$Code),]
-
-allveg<-aggregate(veg.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
-
-
-colnames(allveg)[1]<-"Code"
-allveg$PAL<-newkey$PAL;allveg$MOD<-newkey$MOD
-allveg$label<-paste(newkey$PAL, "to", newkey$MOD)
-allveg$sums<-rowSums(allveg[,2:13])
-allveg<-allveg[order(allveg$MOD, allveg$PAL),]
-
-par(mfrow=c(1,1))
-barplot(allveg$sums, names.arg=allveg$label,las=2,cex.lab=0.8)
+# #This is not productive but I'm curious. shows total forcings. 
+# 
+# real<-unique(convert.code)[which(!is.na(unique(convert.code)))]
+# newkey<-key[which(key$Code%in%real),]
+# newkey<-newkey[order(newkey$Code),]
+# 
+# allveg<-aggregate(veg.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
+# 
+# 
+# colnames(allveg)[1]<-"Code"
+# allveg$PAL<-newkey$PAL;allveg$MOD<-newkey$MOD
+# allveg$label<-paste(newkey$PAL, "to", newkey$MOD)
+# allveg$sums<-rowSums(allveg[,2:13])
+# allveg<-allveg[order(allveg$MOD, allveg$PAL),]
+# 
+# par(mfrow=c(1,1))
+# barplot(allveg$sums, names.arg=allveg$label,las=2,cex.lab=0.8)
 
 
 # Def<-which(allveg$Code%in%Deforest)

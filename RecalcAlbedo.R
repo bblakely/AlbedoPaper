@@ -6,6 +6,8 @@ source('CalcSolar.R')
 #Cleanup unwanted bits from CalcSolar and VegConvert
 rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg")))
 
+Diagplot<-FALSE
+
 #Read in raw data
 ModernAlbRaw<-read.csv('Albedo_Modern1.csv',skip=7)
 PaleoAlbRaw<-read.csv('Albedo_Paleo_v2.csv',skip=7) #older: 'Albedo_Paleo.csv; in 'older data'
@@ -47,7 +49,7 @@ d.alb.nov<-rowMeans(DiffsAlb[39:42],na.rm=TRUE)
 d.alb.dec<-rowMeans(DiffsAlb[43:46],na.rm=TRUE)
 d.alb.month<-data.frame(cbind(d.alb.jan,d.alb.feb,d.alb.mar,d.alb.apr,d.alb.may,
                               d.alb.jun,d.alb.jul,d.alb.aug,d.alb.sep,d.alb.oct,d.alb.nov,d.alb.dec))
-plot(colMeans(d.alb.month, na.rm=TRUE),type='l', ylim=c(0,0.1))
+if(Diagplot==TRUE){plot(colMeans(d.alb.month, na.rm=TRUE),type='l', ylim=c(0,0.1))}
 
 #Regionally aggregated monthly change
 AlbedoChange<-(colMeans(d.alb.month, na.rm=TRUE))
@@ -90,25 +92,21 @@ AlbForce.month[,i]<-insol.avg[i]*((transmit.month[i])^2)*d.alb.month[,i]*(-1)
 AlbForce.month.avg<-colMeans(AlbForce.month, na.rm=TRUE)
 
 #Plot for comparison (remove eventually)
+if(Diagplot==TRUE){
 plot(AlbForce.avg, type='l', lwd=2, ylim=c(-7,1))
 lines(AlbForce.month.avg, col='blue', lwd=2)
 lines(AlbedoForce_radkern, col='purple',lwd=2)
 abline(h=0, lty=2,lwd=2)
 legend(9,-3, legend=c('yearly','monthly', 'rad kernels'), col=c('black','blue', 'purple'), lwd=2, cex=0.5)
 #AlbForce.bku<-AlbForce #Set backup for yearly
-
+}
 ##SUPER KEY SET THIS###
 AlbForce<-AlbForce.month #Eventually should change this into a function but for now renaming so plots work
 
 ####Dummy net plot####
+if(Diagplot==TRUE){
 plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-6,0.5))
 abline(h=0)
-
-#Cleanup, add basic metadata. and write file
-AlbForce.std<-data.frame(cbind(Georef,AlbForce))
-names(AlbForce.std)<-c("Lat","Lon","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
-AlbForce.std[is.na(AlbForce.std)]<-9999
-write.csv(AlbForce.std,"WriteFile/AlbedoForcing_STD.csv")
 
 #####
 #Manually copied other forcings - needs to be automated!
@@ -131,9 +129,15 @@ lines(AlbForce.avg+SToffset+Snowoffset_approx+SnowSToffset_approx, lwd=3)
 mean(AlbForce.avg+SToffset+Snowoffset_approx+SnowSToffset_approx)
 abline(h=0)
 ######
+}
+
+#Cleanup, add basic metadata. and write file
+AlbForce.std<-data.frame(cbind(Georef,AlbForce))
+names(AlbForce.std)<-c("Lat","Lon","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+AlbForce.std[is.na(AlbForce.std)]<-9999
+write.csv(AlbForce.std,"WriteFile/AlbedoForcing_STD.csv")
 
 ####Apply vegetation conversion subsetting to albedo####
-##Must run VegConvert_UTM first to get list.ind, poss, and convert.code
 
 var.set.force=matrix(nrow=12, ncol=length(poss))
 var.set.alb=matrix(nrow=12, ncol=length(poss))

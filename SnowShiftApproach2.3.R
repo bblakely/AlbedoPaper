@@ -65,7 +65,7 @@ Allmax<-FALSE
 SprOnly<-TRUE
 
 #Set to "TRUE" when you want shift plots for diagnosis or sup. figures
-Diagplot<-TRUE
+Diagplot<-FALSE
 #Set of plots, will only be used when Diagplot is true
 plots<-sample(1:nrow(HistAlbs),20)
 
@@ -275,8 +275,6 @@ smoothRF<-AvgRF
 
 #Better uncertainty
 
-
-
 par(mar=c(5,5,4,2))
 plot(AvgRF,type='l',ylim=c(-2,9), main='Snow Albedo RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 ylab=expression(RF~(Wm^-2))
@@ -324,5 +322,51 @@ for(p in 1:12){
   print(length(which(Shifts[,p]<0))/nobs)
   hist(Shifts[,p], xlim=c(-0.5,0.5), main=p)
 }
+
+
+#Experiment with plots of season lenghts
+
+length<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, ModLengths-EarLengths))
+plot(length, useRaster=FALSE, main='change in months with nonzero snow')
+
+
+shifty.apr<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, Shifts[,4]))
+shifty.mar<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, Shifts[,3]))
+shifty.may<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, Shifts[,5]))
+plot(shifty.mar, useRaster=FALSE, main='advance in seasonal melt, Mar')
+plot(shifty.apr, useRaster=FALSE, main='advance in seasonal melt, Apr')
+plot(shifty.may, useRaster=FALSE, main='advance in seasonal melt, May')
+
+
+
+#Extended raw snow
+ModDat.long<-matrix(nrow=nrow(ModDAT), ncol=46)
+EarDat.long<-matrix(nrow=nrow(EarDAT), ncol=46)
+for(x in 1:nrow(ModDAT)){
+ModDat.long[x,]<-approx(as.numeric(ModDAT[x,]), n=46)$y
+EarDat.long[x,]<-approx(as.numeric(EarDAT[x,]), n=46)$y
+}
+
+cutoff<-1 #mm swe considered not snow covered
+
+mdates<-rep(0,nrow(ModDat.long))
+edates<-rep(0, nrow(EarDat.long))
+
+for (r in 1:nrow(ModDat.long)){
+mdates[r]<-min(which(ModDat.long[r,]<cutoff))
+edates[r]<-min(which(EarDat.long[r,]<cutoff))
+}
+
+mdates.ra<-rasterFromXYZ(cbind(Georef_shift$Lon, Georef_shift$Lat,mdates))
+edates.ra<-rasterFromXYZ(cbind(Georef_shift$Lon, Georef_shift$Lat,edates))
+
+plot(edates.ra, useRaster=FALSE,col=rev(terrain.colors(20)), breaks=seq(10,20,length.out=21))
+plot(mdates.ra, useRaster=FALSE,col=rev(terrain.colors(20)), breaks=seq(10,20,length.out=21))
+
+pal<-colorRampPalette(c("dark red","beige"))
+plot((mdates.ra-edates.ra)*8, useRaster=FALSE,col=pal(8), breaks=seq(-8*8,0,length.out=9), main="change in snow-free date (approx. days)")
+
+
+
 
 

@@ -4,6 +4,9 @@ ModAlbedo<-read.csv('Albedo_Modern_Snowanalysis.csv', skip=7)
 HistAlbedo<-read.csv('Albedo_Paleo_Snowanalysis.csv', skip=7)
 DatAlbedo<-read.csv('Modis_Snowanalysis.csv',skip=7)
 
+dev.off()
+par(mfrow=c(1,1))
+
 #Clip to area of interest
 Albedo<-HistAlbedo
 Albedo<-Albedo[Albedo$Lon<(-75),]
@@ -65,7 +68,7 @@ Allmax<-FALSE
 SprOnly<-TRUE
 
 #Set to "TRUE" when you want shift plots for diagnosis or sup. figures
-Diagplot<-FALSE
+Diagplot<-TRUE
 #Set of plots, will only be used when Diagplot is true
 plots<-sample(1:nrow(HistAlbs),20)
 
@@ -290,6 +293,8 @@ abline(h=0, col='red4', lty=2, lwd=3)
 
 write.csv(AvgRF,'WriteFile/SnowForcing1.csv')
 
+dev.off()
+
 #mean(AvgRF[AvgRF!=0])
 #plot(AvgRF, type='l' )
 
@@ -326,47 +331,79 @@ for(p in 1:12){
 
 #Experiment with plots of season lenghts
 
-length<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, ModLengths-EarLengths))
-plot(length, useRaster=FALSE, main='change in months with nonzero snow')
+#length<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, ModLengths-EarLengths))
+#plot(length, useRaster=FALSE, main='change in months with nonzero snow')
 
+#Using seasonal shift scalars
+plotshift<-function(datinput, monthabbr, col=rev(colorRampPalette(c("dark red", "beige","forest green"))(10))){
+  shifty<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat,datinput))
+  plot(shifty, useRaster=FALSE, main=paste('advance in seasonal melt,', monthabbr), 
+       cex.main=0.8, col=col,breaks=seq(-0.4,0.4,length.out=11))
+}
+par(mfrow=c(2,2))
+plotshift(Shifts[,3],'Mar');plotshift(Shifts[,4],'Apr');plotshift(Shifts[,5],'May')
+par(mfrow=c(1,1))
 
-shifty.apr<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, Shifts[,4]))
-shifty.mar<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, Shifts[,3]))
-shifty.may<-rasterFromXYZ(cbind(Georef_shift$Lon,Georef_shift$Lat, Shifts[,5]))
-plot(shifty.mar, useRaster=FALSE, main='advance in seasonal melt, Mar')
-plot(shifty.apr, useRaster=FALSE, main='advance in seasonal melt, Apr')
-plot(shifty.may, useRaster=FALSE, main='advance in seasonal melt, May')
+dev.off()
 
+#Using DOYs with snow
 
+mseas<-mdates<-rep(0,nrow(ModDAT))
+eseas<-edates<-rep(0, nrow(ModDAT))
 
-#Extended raw snow
-ModDat.long<-matrix(nrow=nrow(ModDAT), ncol=46)
-EarDat.long<-matrix(nrow=nrow(EarDAT), ncol=46)
-for(x in 1:nrow(ModDAT)){
-ModDat.long[x,]<-approx(as.numeric(ModDAT[x,]), n=46)$y
-EarDat.long[x,]<-approx(as.numeric(EarDAT[x,]), n=46)$y
+cutoff<-5 #Set to value you want to consider snow-free
+
+#Makes the variables of interest
+for(r in 1:nrow(ModDAT)){
+mvec<-(approx(as.numeric(ModDAT[r,]), n=46)$y)
+evec<-approx(as.numeric(EarDAT[r,]), n=46)$y
+
+mdates[r]<-min(which(mvec<cutoff)) #First date with 'no' snow cover
+edates[r]<-min(which(evec<cutoff))
+
+mseas[r]<-length(which(mvec>cutoff)) #Total number of dates with snow cover
+eseas[r]<-length(which(evec>cutoff))
+
 }
 
-cutoff<-1 #mm swe considered not snow covered
-
-mdates<-rep(0,nrow(ModDat.long))
-edates<-rep(0, nrow(EarDat.long))
-
-for (r in 1:nrow(ModDat.long)){
-mdates[r]<-min(which(ModDat.long[r,]<cutoff))
-edates[r]<-min(which(EarDat.long[r,]<cutoff))
+#It's really obnoxious to type the georef stuff repeatedly. This saves the trouble
+makeraster<-function(dat){
+  ras<-rasterFromXYZ(cbind(Georef_shift$Lon, Georef_shift$Lat,dat))
 }
 
-mdates.ra<-rasterFromXYZ(cbind(Georef_shift$Lon, Georef_shift$Lat,mdates))
-edates.ra<-rasterFromXYZ(cbind(Georef_shift$Lon, Georef_shift$Lat,edates))
+#Make all the rasters
+mdates.ra<-makeraster(mdates)
+edates.ra<-makeraster(edates)
+mseas.ra<-makeraster(mseas)
+eseas.ra<-makeraster(eseas)
 
-plot(edates.ra, useRaster=FALSE,col=rev(terrain.colors(20)), breaks=seq(10,20,length.out=21))
-plot(mdates.ra, useRaster=FALSE,col=rev(terrain.colors(20)), breaks=seq(10,20,length.out=21))
+#Set color palettes
+palabs.red<-colorRampPalette(c("dark red","beige")) #For things on one side of zero
+palabs.blue<-colorRampPalette(c("dark blue","beige"))
+paldiff<-colorRampPalette(c("dark red", "beige","forest green")) #When you have a span on either side of zero, usually for diffs.
 
-pal<-colorRampPalette(c("dark red","beige"))
-plot((mdates.ra-edates.ra)*8, useRaster=FALSE,col=pal(8), breaks=seq(-8*8,0,length.out=9), main="change in snow-free date (approx. days)")
+# Plots for date of melt
+if (Diagplot==TRUE){
+par(mfrow=c(1,2))
+plot(edates.ra*8, useRaster=FALSE,col=rev(palabs.blue(10)), breaks=seq(10*8,20*8,length.out=11), main='DOY of melt')
+plot(mdates.ra*8, useRaster=FALSE,col=rev(palabs.blue(10)), breaks=seq(10*8,20*8,length.out=11), main='DOY of melt')
+par(mfrow=c(1,1))
+plot((edates.ra-mdates.ra)*8, useRaster=FALSE,col=rev(palabs.red(7)), breaks=seq(0,7*8,length.out=8), main="advancement in snow melt (days)")
 
+#Plots for length of season
+par(mfrow=c(1,2))
+plot(mseas.ra*8, useRaster=FALSE, col=rev(palabs.blue(9)), breaks=seq(12*8,30*8, length.out=10),main='length of snow season (days)', cex.main=0.8)
+plot(eseas.ra*8, useRaster=FALSE, col=rev(palabs.blue(9)), breaks=seq(12*8,30*8, length.out=10), main='length of snow season (days)', cex.main=0.8)
+par(mfrow=c(1,1))
+plot((mseas.ra-eseas.ra)*8, useRaster=FALSE,col=(paldiff(14)), breaks=seq(-70,70,length.out=15), main="change in snow season length") #seq(-10*8,2*8,length.out=13)
 
-
-
-
+#Plots with direct monthly differences (just curious)
+par(mfrow=c(2,4), mar=c(2,2,3,2))
+for(i in c(11:12, 1:5)){
+  rast.m<-makeraster(ModDAT[i])
+  rast.e<-makeraster(EarDAT[i])
+  
+  plot(rast.m-rast.e, useRaster=FALSE, col=paldiff(16), breaks=c(-115, seq(-70,70, length.out=15),115), main=month.name[i])
+  
+}
+}

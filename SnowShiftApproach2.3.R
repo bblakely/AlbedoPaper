@@ -355,6 +355,8 @@ eseas<-edates<-rep(0, nrow(ModDAT))
 cutoff<-5 #Set to value you want to consider snow-free
 
 #Makes the variables of interest
+
+#Regular version, for prelim plots and analyses
 for(r in 1:nrow(ModDAT)){
 mvec<-(approx(as.numeric(ModDAT[r,]), n=46)$y)
 evec<-approx(as.numeric(EarDAT[r,]), n=46)$y
@@ -366,6 +368,7 @@ mseas[r]<-length(which(mvec>cutoff)) #Total number of dates with snow cover
 eseas[r]<-length(which(evec>cutoff))
 
 }
+
 
 #It's really obnoxious to type the georef stuff repeatedly. This saves the trouble
 makeraster<-function(dat){
@@ -397,6 +400,33 @@ plot(mseas.ra*8, useRaster=FALSE, col=rev(palabs.blue(9)), breaks=seq(12*8,30*8,
 plot(eseas.ra*8, useRaster=FALSE, col=rev(palabs.blue(9)), breaks=seq(12*8,30*8, length.out=10), main='length of snow season (days)', cex.main=0.8)
 par(mfrow=c(1,1))
 plot((mseas.ra-eseas.ra)*8, useRaster=FALSE,col=(paldiff(14)), breaks=seq(-70,70,length.out=15), main="change in snow season length") #seq(-10*8,2*8,length.out=13)
+
+
+#Steps for getting a non-gappy snow raster for plotting
+
+#Snow data without the gaps and matching georef
+EarDAT.cons<-Early[2:nrow(Early),5:16]  #Make a version not matched to albedo for ultimate plotting of snow alone
+ModDAT.cons<-Modern[2:nrow(Early),5:16] #Make a version not matched to albedo for ultimate plotting of snow alone
+
+Georef.cons<-Albedo[2:nrow(Albedo),3:4]
+Georef_shift.cons<-Georef.cons
+Georef_shift.cons$Lon<-Georef_shift.cons$Lon+0.2 #Not sure why this is done; there must be a misalignment somewhere
+
+
+#Expanded version of product creation
+mseas.cons<-rep(0, nrow(ModDAT.cons))
+eseas.cons<-rep(0, nrow(EarDAT.cons))
+for (r in 1:nrow(ModDAT.cons)){
+  mvec.cons<-(approx(as.numeric(ModDAT.cons[r,]), n=46)$y)
+  evec.cons<-approx(as.numeric(EarDAT.cons[r,]), n=46)$y
+  
+  mseas.cons[r]<-length(which(mvec.cons>cutoff)) #Total number of dates with snow cover
+  eseas.cons[r]<-length(which(evec.cons>cutoff))
+}
+
+seas.diff<-((mseas.cons-eseas.cons)*8)-4 # *8 for 8 days per date, -4 to center last date. The threshhold could be crossed at any time in the 8 day period and that splits the difference.
+seas.prod<-data.frame(cbind(Georef_shift.cons$Lon, Georef_shift.cons$Lat,seas.diff)); colnames(seas.prod)<-c('Lon','Lat','diff')
+#write.csv(seas.prod, "WriteFile/Meltseason_diff1.csv", row.names=FALSE)
 
 #Plots with direct monthly differences (just curious)
 par(mfrow=c(2,4), mar=c(2,2,3,2))

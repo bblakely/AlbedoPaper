@@ -5,7 +5,7 @@ source('SnowShiftApproach2.3.R')
 source('STsnow_Force.R')
 
 writefile<-FALSE #Do you want to write finalized change and forcing files?
-vegplot<-FALSE #Do you want the 25-odd individual converison plots?
+vegplot<-TRUE #Do you want the 25-odd individual converison plots?
 
 par<-pardefault
 
@@ -22,7 +22,8 @@ veg.force<-data.frame(alb.force+st.force)
 
 rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "veg.force",
                         "Georef", "Georef.utm", "convert.code", "writefile",
-                        "Deforest","Deforest.2", "Comp", "snow.force.alb", 'snow.force.st')))
+                        "Deforest","Deforest.2", "Comp", "snow.force.alb", 'snow.force.st',
+                        'vegplot')))
 
 #Seasonal profiles
 
@@ -196,23 +197,92 @@ for(i in dest){
 }
 length(which(convert.code==0))/length(which(!is.na(convert.code))) #Proportion of no change tiles
 
-# #This is not productive but I'm curious. shows total forcings. 
-# 
-# real<-unique(convert.code)[which(!is.na(unique(convert.code)))]
-# newkey<-key[which(key$Code%in%real),]
-# newkey<-newkey[order(newkey$Code),]
-# 
-# allveg<-aggregate(veg.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
-# 
-# 
-# colnames(allveg)[1]<-"Code"
-# allveg$PAL<-newkey$PAL;allveg$MOD<-newkey$MOD
-# allveg$label<-paste(newkey$PAL, "to", newkey$MOD)
-# allveg$sums<-rowSums(allveg[,2:13])
-# allveg<-allveg[order(allveg$MOD, allveg$PAL),]
-# 
-# par(mfrow=c(1,1))
-# barplot(allveg$sums, names.arg=allveg$label,las=2,cex.lab=0.8)
+#This is not productive but I'm curious. shows total forcings.
+
+real<-unique(convert.code)[which(!is.na(unique(convert.code)))]
+newkey<-key[which(key$Code%in%real),]
+newkey<-newkey[order(newkey$Code),]
+
+allveg<-aggregate(veg.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
+#Combined plots?
+allveg.st<-aggregate(st.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
+allveg.alb<-aggregate(alb.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
+
+conv.m2<-8000*8000/10e9
+
+prepare.plot<-function(datinput){
+colnames(datinput)[1]<-"Code"
+datinput$PAL<-newkey$PAL;datinput$MOD<-newkey$MOD
+datinput$label<-paste(newkey$PAL, "to", newkey$MOD)
+datinput$sums<-rowSums(datinput[,2:13])*conv.m2
+datinput<-datinput[order(datinput$MOD, datinput$PAL),]
+return(datinput)
+}
+
+
+allveg.plot<-prepare.plot(allveg)
+allveg.st.plot<-prepare.plot(allveg.st)
+allveg.alb.plot<-prepare.plot(allveg.alb)
+
+#Steps to get to what this plot is showing:
+#(1)pixel summed throughout year (2) pixels in each conversion type summed again.
+#This factors in both the magnitude of the change and its extent; 300 pixels of -1 W/m will show more stongly than 20 pixels of -5 W/m
+par(mfrow=c(1,1))
+par(mar=c(5,4,4,4))
+
+#Cutoff for plotting; combine very small forcings into a single 'other' bin
+co<-sum(abs(allveg.plot$sums))*0.02 # % of total forcings, positive or negative
+draw.co<-which(abs(allveg.plot$sums)>co)
+
+nodraw<-which(!c(1:length(allveg.plot))%in%(draw.co))
+nodraw.alb<-sum(allveg.alb.plot$sums[nodraw])
+nodraw.st<-sum(allveg.st.plot$sums[nodraw])
+nodraw.tot<-sum(allveg.plot$sums[nodraw])
+
+#All on one plot
+barplot(allveg.alb.plot$sums, names.arg=allveg.alb.plot$label,las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
+barplot(allveg.st.plot$sums, names.arg=allveg.st.plot$label,las=2, cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
+par(lwd=2)
+barplot(allveg.plot$sums, names.arg=allveg.plot$label,las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
+
+#With minor players binned
+barplot(c(allveg.alb.plot$sums[draw.co],nodraw.alb), names.arg=c(allveg.alb.plot$label[draw.co], "OTHER"),las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
+barplot(c(allveg.st.plot$sums[draw.co], nodraw.st), names.arg=c(allveg.st.plot$label[draw.co],"OTHER"),las=2, cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
+par(lwd=2)
+barplot(c(allveg.plot$sums[draw.co], nodraw.tot), names.arg=c(allveg.plot$label[draw.co], "OTHER"),las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
+print(paste("other includes", allveg.plot$label[nodraw]))
+
+#Grouped by conversion type
+vegetize<-function(datin, determiner){
+dat.veg<-sum(datin$sums[allveg.alb.plot$Code%in%determiner])
+return(dat.veg)
+}
+
+#There must be a better way...
+allveg.alb.def<-vegetize(allveg.alb.plot, Deforest.2)
+allveg.alb.comp<-vegetize(allveg.alb.plot, Comp)
+allveg.alb.aff<-vegetize(allveg.alb.plot, -Deforest.2)
+allveg.alb.rev<-vegetize(allveg.alb.plot, -Comp)
+
+allveg.st.def<-vegetize(allveg.st.plot, Deforest.2)
+allveg.st.comp<-vegetize(allveg.st.plot, Comp)
+allveg.st.aff<-vegetize(allveg.st.plot, -Deforest.2)
+allveg.st.rev<-vegetize(allveg.st.plot, -Comp)
+
+allveg.def<-vegetize(allveg.plot, Deforest.2)
+allveg.comp<-vegetize(allveg.plot, Comp)
+allveg.aff<-vegetize(allveg.plot, -Deforest.2)
+allveg.rev<-vegetize(allveg.plot, -Comp)
+
+albs<-c(allveg.alb.def, allveg.alb.comp,allveg.alb.aff, allveg.alb.rev)
+sts<-c(allveg.st.def, allveg.st.comp,allveg.st.aff, allveg.st.rev)
+tots<-c(allveg.def, allveg.comp,allveg.aff, allveg.rev)
+
+chglab<-c("Deforest","Comp shift", "Afforest", "Rev Comp Shift")
+
+barplot(albs, names.arg=chglab, cex.names=0.8, cex.axis=0.8, ylim=c(-200000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
+barplot(sts, names.arg=chglab,cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
+barplot(tots, names.arg=chglab,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
 
 
 # Def<-which(allveg$Code%in%Deforest)
@@ -236,7 +306,4 @@ length(which(convert.code==0))/length(which(!is.na(convert.code))) #Proportion o
 # abline(h=0, col='dark red', lwd=2)
 # barplot(allveg$sums[Revcomps], names.arg=allveg$label[Revcomps], ylim=c(-30000, 5000))
 # abline(h=0, col='dark red', lwd=2)
-
-
-
 

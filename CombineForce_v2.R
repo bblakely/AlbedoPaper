@@ -208,7 +208,7 @@ allveg<-aggregate(veg.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
 allveg.st<-aggregate(st.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
 allveg.alb<-aggregate(alb.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
 
-conv.m2<-8000*8000/10e9
+conv.m2<-8000*8000/10e9  #W/m2 
 
 prepare.plot<-function(datinput){
 colnames(datinput)[1]<-"Code"
@@ -229,9 +229,10 @@ allveg.alb.plot<-prepare.plot(allveg.alb)
 #This factors in both the magnitude of the change and its extent; 300 pixels of -1 W/m will show more stongly than 20 pixels of -5 W/m
 par(mfrow=c(1,1))
 par(mar=c(5,4,4,4))
+par(xpd=FALSE)
 
 #Cutoff for plotting; combine very small forcings into a single 'other' bin
-co<-sum(abs(allveg.plot$sums))*0.02 # % of total forcings, positive or negative
+co<-sum(abs(allveg.plot$sums))*0.03 # % of total forcings, positive or negative
 draw.co<-which(abs(allveg.plot$sums)>co)
 
 nodraw<-which(!c(1:length(allveg.plot))%in%(draw.co))
@@ -240,21 +241,41 @@ nodraw.st<-sum(allveg.st.plot$sums[nodraw])
 nodraw.tot<-sum(allveg.plot$sums[nodraw])
 
 #All on one plot
-barplot(allveg.alb.plot$sums, names.arg=allveg.alb.plot$label,las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
+
+#Stacking
+stack<-which(sign(allveg.alb.plot$sums)==sign(allveg.st.plot$sums))
+alb.plot.stack<-allveg.alb.plot$sums
+alb.plot.stack[stack]<-allveg.alb.plot$sums[stack]+allveg.st.plot$sums[stack]
+
+#All together
+
+#Original without stacking
+# barplot(allveg.alb.plot$sums, names.arg=allveg.alb.plot$label,las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
+# barplot(allveg.st.plot$sums, names.arg=allveg.st.plot$label,las=2, cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
+# par(lwd=2)
+# barplot(allveg.plot$sums, names.arg=allveg.plot$label,las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
+# abline(h=0, lwd=2, col='dark red', lty=2)
+
+#Stacked
+barplot(alb.plot.stack, names.arg=allveg.alb.plot$label,las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
 barplot(allveg.st.plot$sums, names.arg=allveg.st.plot$label,las=2, cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
 par(lwd=2)
 barplot(allveg.plot$sums, names.arg=allveg.plot$label,las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
+abline(h=0, lwd=2, col='dark red', lty=2)
+
 
 #With minor players binned
-barplot(c(allveg.alb.plot$sums[draw.co],nodraw.alb), names.arg=c(allveg.alb.plot$label[draw.co], "OTHER"),las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
+barplot(c(alb.plot.stack[draw.co],nodraw.alb), names.arg=c(allveg.alb.plot$label[draw.co], "OTHER"),las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
 barplot(c(allveg.st.plot$sums[draw.co], nodraw.st), names.arg=c(allveg.st.plot$label[draw.co],"OTHER"),las=2, cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
 par(lwd=2)
 barplot(c(allveg.plot$sums[draw.co], nodraw.tot), names.arg=c(allveg.plot$label[draw.co], "OTHER"),las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
-print(paste("other includes", allveg.plot$label[nodraw]))
+abline(h=0, lwd=2, col='dark red', lty=2)
+
+#print(paste("other includes", allveg.plot$label[nodraw]))
 
 #Grouped by conversion type
 vegetize<-function(datin, determiner){
-dat.veg<-sum(datin$sums[allveg.alb.plot$Code%in%determiner])
+dat.veg<-sum(datin$sums[datin$Code%in%determiner])
 return(dat.veg)
 }
 
@@ -278,32 +299,16 @@ albs<-c(allveg.alb.def, allveg.alb.comp,allveg.alb.aff, allveg.alb.rev)
 sts<-c(allveg.st.def, allveg.st.comp,allveg.st.aff, allveg.st.rev)
 tots<-c(allveg.def, allveg.comp,allveg.aff, allveg.rev)
 
-chglab<-c("Deforest","Comp shift", "Afforest", "Rev Comp Shift")
+#Stacked version
 
-barplot(albs, names.arg=chglab, cex.names=0.8, cex.axis=0.8, ylim=c(-200000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
+stack.conv<-which(sign(albs)==sign(sts))
+albs.stack<-albs
+albs.stack[stack.conv]<-albs[stack.conv]+sts[stack.conv]
+
+
+chglab<-c("Deforest","Shift Deciduous", "Afforest", "Shift Evergreen")
+
+barplot(albs.stack, names.arg=chglab, cex.names=0.8, cex.axis=0.8, ylim=c(-200000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
 barplot(sts, names.arg=chglab,cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
 barplot(tots, names.arg=chglab,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
-
-
-# Def<-which(allveg$Code%in%Deforest)
-# Def.2<-which(allveg$Code%in%Deforest.2)
-# Comps<-which(allveg$Code%in%Comp)
-# 
-# Reforest<-(-Deforest)[1:6]
-# Reforest.2<-(-Deforest.2)[1:7]
-# Revcomp<-(-Comp)
-# Ref<-which(allveg$Code%in%Reforest)
-# Ref.2<-which(allveg$Code%in%Reforest.2)
-# Revcomps<-which(allveg$Code%in%Revcomp)
-# 
-# par(mfrow=c(2,2))
-# 
-# barplot(allveg$sums[Def.2], names.arg=allveg$label[Def.2], ylim=c(-30000, 5000))
-# abline(h=0, col='dark red', lwd=2)
-# barplot(allveg$sums[Comps], names.arg=allveg$label[Comps], ylim=c(-30000, 5000))
-# abline(h=0, col='dark red', lwd=2)
-# barplot(allveg$sums[Ref.2], names.arg=allveg$label[Ref.2], ylim=c(-30000, 5000))
-# abline(h=0, col='dark red', lwd=2)
-# barplot(allveg$sums[Revcomps], names.arg=allveg$label[Revcomps], ylim=c(-30000, 5000))
-# abline(h=0, col='dark red', lwd=2)
-
+abline(h=0, lwd=2, col='dark red', lty=2)

@@ -256,12 +256,15 @@ alb.plot.stack[stack]<-allveg.alb.plot$sums[stack]+allveg.st.plot$sums[stack]
 # barplot(allveg.plot$sums, names.arg=allveg.plot$label,las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
 # abline(h=0, lwd=2, col='dark red', lty=2)
 
+par(xpd=FALSE) #These plots are prone to having lines outside plot bounds
+
 #Stacked
 barplot(alb.plot.stack, names.arg=allveg.alb.plot$label,las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
 barplot(allveg.st.plot$sums, names.arg=allveg.st.plot$label,las=2, cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
 par(lwd=2)
 barplot(allveg.plot$sums, names.arg=allveg.plot$label,las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
 abline(h=0, lwd=2, col='dark red', lty=2)
+legend (22,-100, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.7)
 
 
 #With minor players binned
@@ -270,6 +273,7 @@ barplot(c(allveg.st.plot$sums[draw.co], nodraw.st), names.arg=c(allveg.st.plot$l
 par(lwd=2)
 barplot(c(allveg.plot$sums[draw.co], nodraw.tot), names.arg=c(allveg.plot$label[draw.co], "OTHER"),las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
 abline(h=0, lwd=2, col='dark red', lty=2)
+legend (9.7,-120, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.7)
 
 #print(paste("other includes", allveg.plot$label[nodraw]))
 
@@ -299,8 +303,7 @@ albs<-c(allveg.alb.def, allveg.alb.comp,allveg.alb.aff, allveg.alb.rev)
 sts<-c(allveg.st.def, allveg.st.comp,allveg.st.aff, allveg.st.rev)
 tots<-c(allveg.def, allveg.comp,allveg.aff, allveg.rev)
 
-#Stacked version
-
+#Stacking
 stack.conv<-which(sign(albs)==sign(sts))
 albs.stack<-albs
 albs.stack[stack.conv]<-albs[stack.conv]+sts[stack.conv]
@@ -312,3 +315,5 @@ barplot(albs.stack, names.arg=chglab, cex.names=0.8, cex.axis=0.8, ylim=c(-20000
 barplot(sts, names.arg=chglab,cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
 barplot(tots, names.arg=chglab,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
 abline(h=0, lwd=2, col='dark red', lty=2)
+legend (3.8,-300, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.7)
+

@@ -11,7 +11,7 @@ par<-pardefault
 
 alb.diff<-data.frame(d.alb.month)
 st.diff<-data.frame(TableDiffs)
-
+a
 alb.force<-data.frame(AlbForce)
 st.force<-data.frame(TableForce)
 
@@ -316,4 +316,52 @@ barplot(sts, names.arg=chglab,cex.names=0.8,cex.axis=0.8,col='forest green', add
 barplot(tots, names.arg=chglab,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
 abline(h=0, lwd=2, col='dark red', lty=2)
 legend (3.8,-300, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.7)
+
+
+#Some temporary BOE stuff
+alb.pix<-rowMeans(alb.force)
+st.pix<-rowMeans(st.force)
+veg.pix<-alb.pix+st.pix
+
+
+nochg<-which(convert.code==0)
+chg<-which(!is.na(convert.code)&convert.code!=0)
+regrow<-which(convert.code==0 &(paleo.veg==4 |paleo.veg==5|paleo.veg==1|paleo.veg==14))
+def<-which(convert.code%in%Deforest.2)
+af<-which(convert.code%in%-Deforest.2)
+cshift<-which(convert.code%in%Comp)
+eshift<-which(convert.code%in%-Comp)
+urb<-which(convert.code==14)
+tot<-7251
+
+#Giant equation of death? Missing something here - estimate is off by ~ 0.04 W/m
+actual<-
+(length(nochg)/tot)*mean(veg.pix[nochg], na.rm=TRUE)+  #Contribution from no change
+(length(def)/tot)*mean(veg.pix[def], na.rm=TRUE)+      #Deforestation
+(length(cshift)/tot)*mean(veg.pix[cshift], na.rm=TRUE)+#Comp shift
+(length(eshift)/tot)*mean(veg.pix[eshift], na.rm=TRUE)+#Shift to evergreen
+(length(af)/tot)*mean(veg.pix[af], na.rm=TRUE)        #Afforestation
+print(actual)
+
+hypodef<-which(convert.code%in%Deforest[1:6]) #Excludes conversion to urban and mosaic -> crop (as mosaic would not happen up there); not using currently
+
+#Giant equation of *hypothetical* death
+hypothetical<-
+(1258/tot)*mean(veg.pix[nochg], na.rm=TRUE)+  #Contribution from never forest (no change)
+(length(regrow)/tot)*mean(veg.pix[def], na.rm=TRUE)+ #Hypothetical contribution from reforested area if deforested
+(length(def)/tot)*mean(veg.pix[def], na.rm=TRUE)+      #Deforestation
+(length(cshift)/tot)*mean(veg.pix[def], na.rm=TRUE)+#Hypothetical contribution from comp shift if deforested
+(length(eshift)/tot)*mean(veg.pix[eshift], na.rm=TRUE)+#Shift to evergreen
+(length(af)/tot)*mean(veg.pix[af], na.rm=TRUE)        #Afforestation
+
+print(hypothetical)
+
+(hypothetical-actual)/actual #percent change!
+
+
+#Welp turns out comp shift is actually cooler than deforestation. 
+#BUT let's imagine a scenario where forest -> crop or mosaic
+
+
+
 

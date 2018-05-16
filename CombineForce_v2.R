@@ -28,11 +28,9 @@ rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "veg.force
 
 alb<-colMeans(alb.force, na.rm=TRUE)
 st<-colMeans(st.force, na.rm=TRUE)
-
-#Need to update snow ST so it just calls the script
 snow.alb<-snow.force.alb
 snow.st<-snow.force.st
-  #c(0.3871,0.73988,0.70798,0.65542,0.14659,0,0,0,0,0,0.075639,0.19390)
+
 
 Total<-(alb+st+snow.alb+snow.st)
 offset<-(st+snow.alb+snow.st)
@@ -40,7 +38,7 @@ offset<-(st+snow.alb+snow.st)
 mean(Total)/(mean(alb))
 mean(offset)/(mean(alb))
 
-### Plots ###
+### Regional Plots ###
 #### Seasonal Profiles ####
 par(xpd=FALSE)
 par(mar=c(5,5,5,5))
@@ -139,6 +137,7 @@ box(lwd=3)
 #####
 
 
+
 #### Exporting ####
 
 months<-c("jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov")
@@ -159,7 +158,10 @@ if(writefile==TRUE){
 #There is almost certainly a better way, but that works
 #####
 
-#veg subsetting
+
+
+### Vegetation forcing plots ###
+#### Multi-veg plots ####
 if(vegplot==TRUE){
 key<-read.csv('convertcode_key.csv')
 par(mfrow=c(2,2))
@@ -185,31 +187,32 @@ for(i in dest){
 }
 length(which(convert.code==0))/length(which(!is.na(convert.code))) #Proportion of no change tiles
 
-#Stacked bargraphs for veg forcing
+#### Stacked veg forcing ####
 
+#Update key to only include existing transitions
 real<-unique(convert.code)[which(!is.na(unique(convert.code)))]
 newkey<-key[which(key$Code%in%real),]
 newkey<-newkey[order(newkey$Code),]
-
 #probably an apply solution but loop for now
 for(i in 1:nrow(newkey)){
   newkey$Count[i]<-length(which(convert.code==newkey$Code[i]))
 }
 
+
+##Aggregate
 #For sums
 allveg<-aggregate(veg.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
-#Combined plots?
 allveg.st<-aggregate(st.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
 allveg.alb<-aggregate(alb.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
 
-conv.m2<-8000*8000/10e9  #W/m2 -> GW/cell
-  
 #For means
 allveg.u<-aggregate(veg.force, by=list(convert.code), FUN='mean', na.rm=TRUE)
-#Combined plots?
 allveg.st.u<-aggregate(st.force, by=list(convert.code), FUN='mean', na.rm=TRUE)
 allveg.alb.u<-aggregate(alb.force, by=list(convert.code), FUN='mean', na.rm=TRUE)
 
+##Combine information
+
+conv.m2<-8000*8000/10e9  #W/m2 -> GW/cell
 
 prepare.plot<-function(datinput){
 colnames(datinput)[1]<-"Code"
@@ -222,57 +225,19 @@ datinput<-datinput[order(datinput$MOD, datinput$PAL),]
 return(datinput)
 }
 
+#For sums
 allveg.plot<-prepare.plot(allveg)
 allveg.st.plot<-prepare.plot(allveg.st)
 allveg.alb.plot<-prepare.plot(allveg.alb)
 
+#For means
 allveg.plot.u<-prepare.plot(allveg.u)
 allveg.st.plot.u<-prepare.plot(allveg.st.u)
 allveg.alb.plot.u<-prepare.plot(allveg.alb.u)
 
-par(mfrow=c(1,1))
-par(mar=c(5,4,4,4))
-par(xpd=FALSE) #These plots are prone to having lines outside plot bounds
 
+##Group by conversion type
 
-
-###Older plot versions####
-# #Cutoff for plotting; combine very small forcings into a single 'other' bin
-# co<-sum(abs(allveg.plot$sums))*0.03 # % of total forcings, positive or negative
-# draw.co<-which(abs(allveg.plot$sums)>co)
-# 
-# nodraw<-which(!c(1:length(allveg.plot))%in%(draw.co))
-# nodraw.alb<-sum(allveg.alb.plot$sums[nodraw])
-# nodraw.st<-sum(allveg.st.plot$sums[nodraw])
-# nodraw.tot<-sum(allveg.plot$sums[nodraw])
-#
-
-# #Stacking
-# stack<-which(sign(allveg.alb.plot$sums)==sign(allveg.st.plot$sums))
-# alb.plot.stack<-allveg.alb.plot$sums
-# alb.plot.stack[stack]<-allveg.alb.plot$sums[stack]+allveg.st.plot$sums[stack]
-#
-# #All
-# barplot(alb.plot.stack, names.arg=allveg.alb.plot$label,las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
-# barplot(allveg.st.plot$sums, names.arg=allveg.st.plot$label,las=2, cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
-# par(lwd=2)
-# barplot(allveg.plot$sums, names.arg=allveg.plot$label,las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
-# abline(h=0, lwd=2, col='dark red', lty=2)
-# legend (22,-100, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.7)
-
-# 
-# #With minor players binned
-# barplot(c(alb.plot.stack[draw.co],nodraw.alb), names.arg=c(allveg.alb.plot$label[draw.co], "OTHER"),las=2, cex.names=0.8, cex.axis=0.8, ylim=c(-40000*conv.m2,15000*conv.m2),ylab="GW", main="Total absolute forcing (annual)")
-# barplot(c(allveg.st.plot$sums[draw.co], nodraw.st), names.arg=c(allveg.st.plot$label[draw.co],"OTHER"),las=2, cex.names=0.8,cex.axis=0.8,col='forest green', add=TRUE)
-# par(lwd=2)
-# barplot(c(allveg.plot$sums[draw.co], nodraw.tot), names.arg=c(allveg.plot$label[draw.co], "OTHER"),las=2,cex.names=0.8,cex.axis=0.8,density=15, col='black',add=TRUE)
-# abline(h=0, lwd=2, col='dark red', lty=2)
-# legend (9.7,-120, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.7)
-
-#print(paste("other includes", allveg.plot$label[nodraw]))
-#####
-
-#Grouped by conversion type
 conversion<-list(Deforest.2, Comp, -Deforest.2,-Comp)
 
 vegetize<-function(datin, convlist, fxn){
@@ -284,16 +249,18 @@ vegetize<-function(datin, convlist, fxn){
   return(ann.force)
 }
 
-
+#For sums
 albs<-vegetize(allveg.alb.plot, conversion, 'sum')
 sts<-vegetize(allveg.st.plot, conversion, 'sum')
 tots<-vegetize(allveg.plot, conversion, 'sum')
 
+#For means
 albs.u<-vegetize(allveg.alb.plot.u, conversion, 'mean')
 sts.u<-vegetize(allveg.st.plot.u, conversion, 'mean')
 tots.u<-vegetize(allveg.plot.u, conversion, 'mean')
 
-#Stacking
+##Stacking (for plots)
+
 stackplot<-function(albs, sts){
 stack.conv<-which(sign(albs)==sign(sts))
 albs.stack<-albs
@@ -301,23 +268,24 @@ albs.stack[stack.conv]<-albs[stack.conv]+sts[stack.conv]
 return(albs.stack)
 }
 
-albs.stack<-stackplot(albs,sts)
-albs.stack.u<-stackplot(albs.u, sts.u)
+albs.stack<-stackplot(albs,sts) #For sums
+albs.stack.u<-stackplot(albs.u, sts.u) #For means
 
+##Plotting
+#Set plot parameters
+par(mfrow=c(1,1))
+par(mar=c(5,4,4,4))
+par(xpd=FALSE) #These plots are prone to having lines outside plot bounds
+
+#Set labels
 chglab<-c("Deforest","Comp shift (DC)", "Afforest", "Comp shift (EG)")
 
-
 #Sums
-#Steps to get to what this plot is showing:
-#(1)pixel summed throughout year (2) pixels in each conversion type summed again.
-#This factors in both the magnitude of the change and its extent; 300 pixels of -1 W/m will show more stongly than 20 pixels of -5 W/m
 barplot(albs.stack, names.arg=chglab,ylab="GW", font=2, font.lab=2,ylim=c(-90,45))
 barplot(sts, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2)
 barplot(tots, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
 abline(h=0, lwd=2, col='dark red', lty=2)
 legend (3,-300, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'))
-
-#ylim=c(-200000*conv.m2,50000*conv.m2)
 
 #Means
 barplot(albs.stack.u, names.arg=chglab, font=2, font.lab=2)
@@ -325,9 +293,10 @@ barplot(sts.u, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2
 barplot(tots.u, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
 abline(h=0, lwd=2, col='dark red', lty=2)
 legend (3,-300, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'))
+#####
 
 
-####Back-of-envelope for deforestation####
+#### Back-of-envelope for deforestation ####
 
 alb.pix<-rowMeans(alb.force)
 st.pix<-rowMeans(st.force)

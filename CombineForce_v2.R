@@ -202,8 +202,8 @@ allveg<-aggregate(veg.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
 allveg.st<-aggregate(st.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
 allveg.alb<-aggregate(alb.force, by=list(convert.code), FUN='sum', na.rm=TRUE)
 
-conv.m2<-8000*8000/10e9  #W/m2 -> GW
-
+conv.m2<-8000*8000/10e9  #W/m2 -> GW/cell
+  
 #For means
 allveg.u<-aggregate(veg.force, by=list(convert.code), FUN='mean', na.rm=TRUE)
 #Combined plots?
@@ -211,18 +211,16 @@ allveg.st.u<-aggregate(st.force, by=list(convert.code), FUN='mean', na.rm=TRUE)
 allveg.alb.u<-aggregate(alb.force, by=list(convert.code), FUN='mean', na.rm=TRUE)
 
 
-
 prepare.plot<-function(datinput){
 colnames(datinput)[1]<-"Code"
 datinput$PAL<-newkey$PAL;datinput$MOD<-newkey$MOD
 datinput$label<-paste(newkey$PAL, "to", newkey$MOD)
 datinput$counts<-newkey$Count
-datinput$sums<-rowSums(datinput[,2:13])*conv.m2
-datinput$means<-rowMeans(datinput[,2:13])
+datinput$sums<-rowMeans(datinput[,2:13])*conv.m2 #For sums. Mean forcing (W/m2) of all (summed) cells for each conversion; units technically GW/region I guess
+datinput$means<-rowMeans(datinput[,2:13]) #For means. Mean forcing (W/m2) for each conversion. Units W/m2
 datinput<-datinput[order(datinput$MOD, datinput$PAL),]
 return(datinput)
 }
-
 
 allveg.plot<-prepare.plot(allveg)
 allveg.st.plot<-prepare.plot(allveg.st)
@@ -287,10 +285,6 @@ vegetize<-function(datin, convlist, fxn){
 }
 
 
-testdat<-allveg.alb.plot.u
-testans<-weighted.mean(testdat$means[testdat$Code%in%Comp],testdat$counts[testdat$Code%in%Comp])
-
-
 albs<-vegetize(allveg.alb.plot, conversion, 'sum')
 sts<-vegetize(allveg.st.plot, conversion, 'sum')
 tots<-vegetize(allveg.plot, conversion, 'sum')
@@ -317,11 +311,13 @@ chglab<-c("Deforest","Comp shift (DC)", "Afforest", "Comp shift (EG)")
 #Steps to get to what this plot is showing:
 #(1)pixel summed throughout year (2) pixels in each conversion type summed again.
 #This factors in both the magnitude of the change and its extent; 300 pixels of -1 W/m will show more stongly than 20 pixels of -5 W/m
-barplot(albs.stack, names.arg=chglab, ylim=c(-200000*conv.m2,50000*conv.m2),ylab="GW", font=2, font.lab=2)
+barplot(albs.stack, names.arg=chglab,ylab="GW", font=2, font.lab=2,ylim=c(-90,45))
 barplot(sts, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2)
 barplot(tots, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
 abline(h=0, lwd=2, col='dark red', lty=2)
 legend (3,-300, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'))
+
+#ylim=c(-200000*conv.m2,50000*conv.m2)
 
 #Means
 barplot(albs.stack.u, names.arg=chglab, font=2, font.lab=2)

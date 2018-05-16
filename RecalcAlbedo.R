@@ -198,15 +198,15 @@ span<-c(l.min, l.max)
 #RF for deforestation
 par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
-plot(AlbForce.avg.def, type='l', col='orange', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(AlbForce.avg.def, type='l', col='grey20', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
-polygon(x=c(1:12,12:1),y=c(AlbForce.avg.def+1.96*uncertainty.def,rev(AlbForce.avg.def-1.96*uncertainty.def)),border=NA, col='palegoldenrod')
-lines(AlbForce.avg.def,  col='orange', ylim=c(-12, 1), lwd=2)
+polygon(x=c(1:12,12:1),y=c(AlbForce.avg.def+1.96*uncertainty.def,rev(AlbForce.avg.def-1.96*uncertainty.def)),border=NA, col='gray')
+lines(AlbForce.avg.def,  col='grey20', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 
 #Pull forcings/uncertainties for compshift
@@ -223,15 +223,15 @@ mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE)) #Yearly avg, deforested
 #Plot RF for compshift
 par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
-plot(AlbForce.avg.comp, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(AlbForce.avg.comp, type='l', col='grey20', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
-polygon(x=c(1:12,12:1),y=c(AlbForce.avg.comp+1.96*uncertainty.comp,rev(AlbForce.avg.comp-1.96*uncertainty.comp)),border=NA, col='darkseagreen1')
-lines(AlbForce.avg.comp,  col='forest green', ylim=c(-12, 1), lwd=2)
+polygon(x=c(1:12,12:1),y=c(AlbForce.avg.comp+1.96*uncertainty.comp,rev(AlbForce.avg.comp-1.96*uncertainty.comp)),border=NA, col='gray')
+lines(AlbForce.avg.comp,  col='grey20', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 
 

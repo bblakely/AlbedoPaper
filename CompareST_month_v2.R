@@ -1,6 +1,7 @@
 #ST analyses
 
 source('VegConvert_UTM.R')
+source('RadKernel_extract.R')
 
 #Read in data
 Modern_day_raw<-read.csv('Modern_day_(v2).csv', skip=7)

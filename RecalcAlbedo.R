@@ -3,8 +3,10 @@ source('VegConvert_UTM.R')
 source('Ceres_unpack.R')
 source('CalcSolar.R')
 
+source('RadKernel_extract.R')
+
 #Cleanup unwanted bits from CalcSolar and VegConvert
-rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg")))
+rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg", 'albkern')))
 
 Diagplot<-FALSE
 

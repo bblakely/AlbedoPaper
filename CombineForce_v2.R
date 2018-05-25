@@ -274,25 +274,26 @@ albs.stack.u<-stackplot(albs.u, sts.u) #For means
 ##Plotting
 #Set plot parameters
 par(mfrow=c(1,1))
-par(mar=c(5,4,4,4))
+par(mar=c(5,5,4,4))
 par(xpd=FALSE) #These plots are prone to having lines outside plot bounds
 
 #Set labels
-chglab<-c("Deforest","Comp shift (DC)", "Afforest", "Comp shift (EG)")
+chglab<-c("Deforest","Shift DC", "Afforest", "Shift EG")
 
 #Sums
-barplot(albs.stack, names.arg=chglab,ylab="GW", font=2, font.lab=2,ylim=c(-90,45))
+barplot(albs.stack, names.arg=chglab,ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-90,45))
 barplot(sts, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2)
 barplot(tots, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
 abline(h=0, lwd=2, col='dark red', lty=2)
-legend (3,-300, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'))
+legend (3,-20, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.8)
 
 #Means
-barplot(albs.stack.u, names.arg=chglab, font=2, font.lab=2)
+ylab.st<-expression(Average~RF~(Wm^-2))
+barplot(albs.stack.u, names.arg=chglab, font=2, font.lab=2, ylab=ylab.st)
 barplot(sts.u, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2)
 barplot(tots.u, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
 abline(h=0, lwd=2, col='dark red', lty=2)
-legend (3,-300, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'))
+#legend (3,-1, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.8)
 #####
 
 

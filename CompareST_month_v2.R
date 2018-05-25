@@ -145,6 +145,10 @@ HtempsNight<-PalN_Dat
 MtempsDay<-ModD_Dat
 MtempsNight<-ModN_Dat
 
+## Radkern calcualtions of flux ##
+forcing.k<-colMeans(TableDiffs*stkern, na.rm=TRUE)
+forcing.k.plot<-approx(forcing.k, n=46)$y
+
 ## SB law calcualtions of longwave flux ##
 
 ####Set emissivities####
@@ -189,6 +193,7 @@ Mforce.l<-(MtempsDay^4)*SB*modern.emi #Modern surface outgoing longwave
 
 #Should probably get LWin adjusted version up here; currently written as a mean
 
+
 #Assign chosen emi (...force.l vs ...force.o)
 HforceDay<-Hforce.l
 MforceDay<-Mforce.l
@@ -224,9 +229,10 @@ if(diag.plots==TRUE){
 plot(-forcing.o, type='l', ylim=c(-5,8), lwd=3, main='LWforcing(day)')
 lines(-forcing.l, col='red', lwd=3, lty=2)
 lines(-forcing.l2, col='green', lwd=3, lty=3)
+lines(forcing.k.plot, col='orange', lwd=3, lty=4)
 abline(h=0)
-legend(15,0,legend=c('albedo-based','original (static)','veg based (lit))', "veg based+lw_in"), 
-       lwd=2, col=c('blue','black','red', 'green'), cex=0.5, bty='n', ncol=2)
+legend(15,0,legend=c('albedo-based','original (static)','veg based (lit))', "veg based+lw_in", "RadKern"), 
+       lwd=2, col=c('blue','black','red', 'green', 'orange'), cex=0.5, bty='n', ncol=2)
 }
 mean(-forcing.o)
 mean(-forcing.l)
@@ -445,5 +451,19 @@ abline(h=0, col='red4', lty=2, lwd=3)
 #####
 #write.csv(STNetForce,'WriteFile/ST_dayweight.csv')
 
+#CIs
+wintermonths<-c(1:2, 12)
+springmonths<-c(3:5)
+summermonths<-c(6:8)
+fallmonths<-c(9:11)
+
+ST.force.ann.ci<-mean(uncertainty.force)
+print("annual st interval:");print(c(mean(smoothRF)+ST.force.ann.ci,mean(smoothRF)-ST.force.ann.ci))
+
+ST.force.w.ci<-mean(uncertainty.force[wintermonths])
+print("winter st interval:");print(c(mean(smoothRF[wintermonths])+ST.force.w.ci,mean(smoothRF[wintermonths])-ST.force.w.ci))
+
+ST.force.s.ci<-mean(uncertainty.force[summermonths])
+print("summer st interval:");print(c(mean(smoothRF[summermonths])+ST.force.w.ci,mean(smoothRF[summermonths])-ST.force.w.ci))
 
 

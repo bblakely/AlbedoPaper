@@ -159,9 +159,25 @@ abline(h=0,lty=2, lwd=3,col='red4')
 axis(side=1,labels=seq(from=1,to=12,by=2),at=seq(from=1,to=12,by=2),cex.axis=1.5, font=2)
 
 #Quantiles
-quantile(forcing.px[,c(1:2,7)], c(0.1,0.9), na.rm=TRUE) #winter
-quantile(forcing.px[,c(3:5)], c(0.1,0.9), na.rm=TRUE) #spring
-quantile(forcing.year,c(0.1,0.9),na.rm=TRUE) #all year
+#quantile(forcing.px[,c(1:2,7)], c(0.1,0.9), na.rm=TRUE) #winter
+#quantile(forcing.px[,c(3:5)], c(0.1,0.9), na.rm=TRUE) #spring
+#quantile(forcing.year,c(0.1,0.9),na.rm=TRUE) #all year
+
+WinterDays<-c(1,6:7)#There are no data for non-snow days; 6 and 7 are nov and Dec
+SpringDays<-c(3:5)
+
+ann.sno<-mean(rowMeans(forcing.px, na.rm=TRUE), na.rm=TRUE); print(ann.sno)
+ann.sno.ci<-sd(rowMeans(forcing.px, na.rm=TRUE), na.rm=TRUE)*2
+print("st snow ann interval");print(c(ann.sno+ann.sno.ci, ann.sno-ann.sno.ci))
+
+spr.sno<-mean(rowMeans(forcing.px[,SpringDays], na.rm=TRUE), na.rm=TRUE); print(spr.sno)
+spr.sno.ci<-sd(rowMeans(forcing.px[,SpringDays], na.rm=TRUE), na.rm=TRUE)*2
+print("st snow spr interval");print(c(spr.sno+spr.sno.ci, spr.sno-spr.sno.ci))
+
+wnt.sno<-mean(rowMeans(forcing.px[,WinterDays], na.rm=TRUE), na.rm=TRUE); print(wnt.sno)
+wnt.sno.ci<-sd(rowMeans(forcing.px[,WinterDays], na.rm=TRUE), na.rm=TRUE)*2
+print("st snow wnt interval");print(c(wnt.sno+wnt.sno.ci, wnt.sno-wnt.sno.ci))
+
 
 
 force.month->STSnowRF #Rename for combine force

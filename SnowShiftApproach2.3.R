@@ -314,11 +314,20 @@ mean(EarLengths)
 
 #Winter and spring changes
 
-WinterDays<-c(1,2,12)
+WinterDays<-c(1,2,11,12)
 SpringDays<-c(3:5)
 
-mean(rowMeans(TableRF[,SpringDays]))
-quantile(rowMeans(TableRF[,SpringDays]), c(0.1,0.9))
+ann.sno<-mean(rowMeans(TableRF)); print(ann.sno)
+quantile(rowMeans(TableRF), c(0.05,0.95))
+ann.sno.ci<-sd(rowMeans(TableRF))*2
+print("albedo snow ann interval");print(c(ann.sno+ann.sno.ci, ann.sno-ann.sno.ci))
+
+spr.sno<-mean(rowMeans(TableRF[,SpringDays])); print(spr.sno)
+quantile(rowMeans(TableRF[,SpringDays]), c(0.05,0.95))
+spr.sno.ci<-sd(rowMeans(TableRF[,SpringDays]))*2
+print("albedo snow spr interval");print(c(spr.sno+spr.sno.ci, spr.sno-spr.sno.ci))
+
+
 #mean(AvgDiffs[SpringDays], na.rm=TRUE)
 #mean(AvgDiffs[WinterDays], na.rm=TRUE)
 

@@ -55,8 +55,9 @@ if(Diagplot==TRUE){plot(colMeans(d.alb.month, na.rm=TRUE),type='l', ylim=c(0,0.1
 
 #Regionally aggregated monthly change
 AlbedoChange<-(colMeans(d.alb.month, na.rm=TRUE))
-kern<-c(-0.4497905, -0.6347546, -0.9331561, -1.7380854, -2.0052537, -2.1795964, -2.3169745, -2.1485645, -1.6113351, -1.0286796, -0.5552617, -0.4964455)
-AlbedoForce_radkern<-(AlbedoChange/0.01)*kern
+
+#With radiative kernel
+AlbedoForce_radkern<-(AlbedoChange/0.01)*albkern
 
 #Calculate forcing
 #Ceres_unpack and CalcSolar need to have been run at this point
@@ -100,38 +101,9 @@ lines(AlbForce.month.avg, col='blue', lwd=2)
 lines(AlbedoForce_radkern, col='purple',lwd=2)
 abline(h=0, lty=2,lwd=2)
 legend(9,-3, legend=c('yearly','monthly', 'rad kernels'), col=c('black','blue', 'purple'), lwd=2, cex=0.5)
-#AlbForce.bku<-AlbForce #Set backup for yearly
 }
 ##SUPER KEY SET THIS###
 AlbForce<-AlbForce.month #Eventually should change this into a function but for now renaming so plots work
-
-####Dummy net plot####
-if(Diagplot==TRUE){
-plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-6,0.5))
-abline(h=0)
-
-#####
-#Manually copied other forcings - needs to be automated!
-SToffset<-c(-0.922178822, -0.813981288, -0.287019643,  0.038124206,  1.313251843,
-             2.424227792,  1.723607501,  1.194636428,  0.849527934, -0.009961376,
-            -0.393786777, -0.805246905)
-  #c(-0.90971734, -1.02053852, -0.45385387,  0.03406376,  1.12528311,
-            #2.43204722,1.67001469,  1.15986021,  0.88614576, -0.19873367, -0.45981090, -0.71047294)
-
-Snowoffset_approx<-c(0,0,0.48,2.67,0.078,0,0,0,0,0,0,0)
-SnowSToffset_approx<-c(0.3871,0.73988,0.70798,0.65542,0.14659,0,0,0,0,0,0.075639,0.19390)
-
-#Basic combined forcing plot
-plot(colMeans(AlbForce, na.rm=TRUE),type='l',ylim=c(-6,2.5))
-abline(h=0)
-lines(SToffset, col='red')
-lines(Snowoffset_approx, col='blue')
-lines(SnowSToffset_approx, col='light blue')
-lines(AlbForce.avg+SToffset+Snowoffset_approx+SnowSToffset_approx, lwd=3)
-mean(AlbForce.avg+SToffset+Snowoffset_approx+SnowSToffset_approx)
-abline(h=0)
-######
-}
 
 #Cleanup, add basic metadata. and write file
 AlbForce.std<-data.frame(cbind(Georef,AlbForce))
@@ -162,7 +134,7 @@ for(j in 1:length(poss)){ #for each vegetation conversion...
 }
 
 ##Scale var.set by counts. count.set is the portion of each conversion
-var.scl.force<-sweep(var.set.force,2,count.set,'*') 
+var.scl.force<-sweep(var.set.force,2,count.set,'*')
 var.scl.alb<-sweep(var.set.alb,2,count.set,'*')
 
 #Label
@@ -171,6 +143,8 @@ colnames(var.scl.force)<-poss
 #Sum across veg conversions
 uncertainty.force<-rowSums(var.scl.force, na.rm=TRUE)
 uncertainty.alb<-rowSums(var.scl.alb, na.rm=TRUE)
+
+
 
 #####Plots#####
 par(mfrow=c(1,1))
@@ -269,9 +243,19 @@ polygon(x=c(1:12,12:1),y=c(AlbForce.avg+1.96*uncertainty.force,rev(AlbForce.avg-
 lines(AlbForce.avg, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
 
-#Not sure why these are here...
+#Seasonal excerpts
 wintermonths<-c(1:2, 12)
 springmonths<-c(3:5)
 summermonths<-c(6:8)
 fallmonths<-c(9:11)
+
+#CI's
+Alb.force.ann.ci<-mean(uncertainty.force)
+print("annual alb interval:");print(c(mean(AlbForce.avg)+Alb.force.ann.ci,mean(AlbForce.avg)-Alb.force.ann.ci))
+
+Alb.force.w.ci<-mean(uncertainty.force[wintermonths])
+print("winter alb interval:");print(c(mean(AlbForce.avg[wintermonths])+Alb.force.w.ci,mean(AlbForce.avg[wintermonths])-Alb.force.w.ci))
+
+Alb.force.s.ci<-mean(uncertainty.force[summermonths])
+print("summer alb interval:");print(c(mean(AlbForce.avg[summermonths])+Alb.force.w.ci,mean(AlbForce.avg[summermonths])-Alb.force.w.ci))
 

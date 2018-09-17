@@ -57,7 +57,8 @@ if(Diagplot==TRUE){plot(colMeans(d.alb.month, na.rm=TRUE),type='l', ylim=c(0,0.1
 AlbedoChange<-(colMeans(d.alb.month, na.rm=TRUE))
 
 #With radiative kernel
-AlbedoForce_radkern<-(AlbedoChange/0.01)*albkern
+AlbedoForce_radkern<-(d.alb.month/0.01)*albkern
+AlbedoForce_radkern.u<-(AlbedoChange/0.01)*albkern
 
 #Calculate forcing
 #Ceres_unpack and CalcSolar need to have been run at this point
@@ -98,12 +99,13 @@ AlbForce.month.avg<-colMeans(AlbForce.month, na.rm=TRUE)
 if(Diagplot==TRUE){
 plot(AlbForce.avg, type='l', lwd=2, ylim=c(-7,1))
 lines(AlbForce.month.avg, col='blue', lwd=2)
-lines(AlbedoForce_radkern, col='purple',lwd=2)
+lines(AlbedoForce_radkern.u, col='purple',lwd=2)
 abline(h=0, lty=2,lwd=2)
 legend(9,-3, legend=c('yearly','monthly', 'rad kernels'), col=c('black','blue', 'purple'), lwd=2, cex=0.5)
 }
 ##SUPER KEY SET THIS###
-AlbForce<-AlbForce.month #Eventually should change this into a function but for now renaming so plots work
+AlbForce<-AlbedoForce_radkern
+  #AlbForce.month #Eventually should change this into a function but for now renaming so plots work
 
 #Cleanup, add basic metadata. and write file
 AlbForce.std<-data.frame(cbind(Georef,AlbForce))
@@ -166,8 +168,8 @@ AlbChange.def<-AlbChange.veg[which(AlbForce.veg[,13]%in%Deforest),]
 mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
 
 #Set flexible plot limit params
-l.max<-9
-l.min<-(-15)
+l.max<-5
+l.min<-(-30)
 span<-c(l.min, l.max)
 
 ##Actual plotting

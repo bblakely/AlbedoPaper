@@ -87,8 +87,6 @@ NightDiffs<-n.temp.month
 NightDiffu=colMeans(NightDiffs, na.rm=TRUE)
 if(diag.plots==TRUE){lines(approx(NightDiffu, n=46)$y, col='green')}
 
-#Unweighted
-#MeanDiffs=(NightDiffu+DayDiffu)/2
 
 #Day/night weighted
 library('insol') #insol has daylight hours based on lat an lon.
@@ -115,9 +113,6 @@ Tabweight.temp<-Tabweight
 #Weighting with spatial dimensions intact
 TableDiffs<-data.frame(DayDiffs*Tabweight+NightDiffs*(1-Tabweight))
 AvgDiffs<-colMeans(TableDiffs, na.rm=TRUE)
-
-#Weighting after collapsing spatially, i.e for each of 46 (modis date) regional temp changes (Daydiffu)
-AvgDiffs_u<-(DayDiffu*useweight_temp$y)+(NightDiffu*(1-useweight_temp$y))
 
 #Some seasonal #s
 SummerDays<-c(6:8)
@@ -202,10 +197,10 @@ MforceDay<-Mforce.l
 
 #Componenet fluxes
 ForcingsDay<-HforceDay-MforceDay  #SURFACE forcings
-AdjforcingDay<-(-368/390)*ForcingsDay #ATMOSPHERIC forcings
+AtmforcingDay<-(-368/390)*ForcingsDay #ATMOSPHERIC forcings
 TOAforcingDay<-(22/390)*ForcingsDay #TOA forcings
 
-AdjDay<-colMeans(AdjforcingDay, na.rm=TRUE)
+AtmDay<-colMeans(AtmforcingDay, na.rm=TRUE)
 TOADay<-colMeans(TOAforcingDay, na.rm=TRUE)
 SURFDay<-colMeans(ForcingsDay, na.rm=TRUE)
 
@@ -213,7 +208,7 @@ SURFDay<-colMeans(ForcingsDay, na.rm=TRUE)
 if(diag.plots==TRUE){
 plot(SURFDay, ylim=c(-8,8), type='l', ylab='LW components', main='Day')
 lines(TOADay, col='light blue')
-lines(AdjDay, col='red')
+lines(AtmDay, col='red')
 
 legend(0,-2, legend = c("Surface; (-) means more heat out", 'TOA; (-) means more heat out', 'ATM; (+) means more trapped, i.e. less out'), 
        col=c('black', 'light blue', 'red'), lwd=1, cex=0.5, bty='n')
@@ -247,10 +242,10 @@ HforceNight<-(HtempsNight^4)*SB*paleo.emi
 MforceNight<-(MtempsNight^4)*SB*modern.emi
 
 ForcingsNight<-HforceNight-MforceNight
-AdjforcingNight<-(-368/390)*ForcingsNight
+AtmforcingNight<-(-368/390)*ForcingsNight
 TOAforcingNight<-(22/390)*ForcingsNight
 
-AdjNight<-colMeans(AdjforcingNight, na.rm=TRUE)
+AtmNight<-colMeans(AtmforcingNight, na.rm=TRUE)
 TOANight<-colMeans(TOAforcingNight, na.rm=TRUE)
 SURFNight<-colMeans(ForcingsNight, na.rm=TRUE)
 
@@ -258,7 +253,7 @@ SURFNight<-colMeans(ForcingsNight, na.rm=TRUE)
 if(diag.plots==TRUE){
   plot(SURFNight, ylim=c(-8,5), type='l', ylab='LW components', main='Night')
 lines(TOANight, col='light blue')
-lines(AdjNight, col='red')
+lines(AtmNight, col='red')
 
 legend(0,-2, legend = c("Surface; (-) means more heat out", 'TOA; (-) means more heat out', 'ATM; (+) means more trapped, i.e. less out'), 
        col=c('black', 'light blue', 'red'), lwd=1, cex=0.5, bty='n')
@@ -338,7 +333,7 @@ uncertainty.lst<-rowSums(var.scl.lst, na.rm=TRUE)
 
 ###Deforest and Comp shift###
 
-STForce.veg<-cbind(forcing.k, convert.code) #WAS TableForce instead of forcing.k
+STForce.veg<-cbind(TableForce, convert.code) #TableForce for Trenberth ratios, forcing.k for radiative kernels
 STChg.veg<-cbind(TableDiffs, convert.code)
 
 #### Veg shift Subsetting ####
@@ -383,8 +378,8 @@ mean(STChg.comp.avg[c(6:8)])
 #### Veg shift Plots ####
 
 # These numbers should be the reverse of albedo, i.e. -2 to 6 becomes -6 to 2
-l.max<-9
-l.min<-(-15)
+l.max<-1
+l.min<-(-12)
 span<-c(l.min, l.max)
 
 ## Deforestation ##
@@ -395,10 +390,13 @@ axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axi
 axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
+abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(STForce.avg.def+1.96*uncertainty.def,rev(STForce.avg.def-1.96*uncertainty.def)),border=NA, col='darkseagreen1')
 lines(STForce.avg.def,  col='forest green', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
-abline(h=0, col='red4', lty=2, lwd=3)
+dev.copy(png, filename="Figures/STDeforest.png", width=500, height=425);dev.off()
+
+
 # lines(STForce.nosnow.avg, lwd=2)
 
 ## Composition Shift ##
@@ -409,10 +407,12 @@ axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axi
 axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
+abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(STForce.avg.comp+1.96*uncertainty.comp,rev(STForce.avg.comp-1.96*uncertainty.comp)),border=NA, col='darkseagreen1')
 lines(STForce.avg.comp,  col='forest green', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
-abline(h=0, col='red4', lty=2, lwd=3)
+dev.copy(png, filename="Figures/STCompshift.png", width=500, height=425);dev.off()
+
 
 par(xpd=FALSE)
 #####
@@ -434,23 +434,27 @@ box(lwd=3)
 polygon(x=c(1:12,12:1),y=c(AvgDiffs+1.96*uncertainty.lst,rev(AvgDiffs-1.96*uncertainty.lst)),border=NA, col='gray')
 lines(AvgDiffs, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
+dev.copy(png, filename="Figures/STChange.png", width=600, height=400);dev.off()
 
 
 #smoothRF<-TabRF
-smoothRF<-colMeans(forcing.k, na.rm=TRUE)*(-1) ###TEMPORARY cosmetic change to kernel forcings; need to propegate kernel forcings throughout to get correct uncertainty
+smoothRF<-colMeans(TableDiffs, na.rm=TRUE)*(-1) ###TableDiffs for Trenberth, forcings.k for kermels; need to propegate kernel forcings throughout to get correct uncertainty
 #Regional ST forcing
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2)) #was ylim -4, 6
-plot(smoothRF,type='l',ylim=c(-2,2), main='LST RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+plot(smoothRF,type='l',ylim=c(-2.1,2.1), main='LST RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-5, to=5, by=2), at=seq(from=-5, to=5, by=2), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-5, to=5, by=1), at=seq(from=-5, to=5, by=1), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
 box(lwd=3)
 polygon(x=c(1:12,12:1),y=c(smoothRF+1.96*uncertainty.force,rev(smoothRF-1.96*uncertainty.force)),border=NA, col='gray')
 lines(smoothRF, lwd=5) 
 abline(h=0, col='red4', lty=2, lwd=3)
+
+dev.copy(png, filename="Figures/STForcing.png", width=600, height=400);dev.off()
+
 #####
 #write.csv(STNetForce,'WriteFile/ST_dayweight.csv')
 

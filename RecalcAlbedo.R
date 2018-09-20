@@ -104,8 +104,10 @@ abline(h=0, lty=2,lwd=2)
 legend(9,-3, legend=c('yearly','monthly', 'rad kernels'), col=c('black','blue', 'purple'), lwd=2, cex=0.5)
 }
 ##SUPER KEY SET THIS###
-AlbForce<-AlbedoForce_radkern
-  #AlbForce.month #Eventually should change this into a function but for now renaming so plots work
+AlbForce<-AlbForce.month
+  #AlbedoForce_radkern for radiative kernels
+  #AlbForce.month for Trenberth
+  #Eventually should change this into a function but for now renaming so plots work
 
 #Cleanup, add basic metadata. and write file
 AlbForce.std<-data.frame(cbind(Georef,AlbForce))
@@ -168,8 +170,8 @@ AlbChange.def<-AlbChange.veg[which(AlbForce.veg[,13]%in%Deforest),]
 mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
 
 #Set flexible plot limit params
-l.max<-5
-l.min<-(-30)
+l.max<-1
+l.min<-(-12)
 span<-c(l.min, l.max)
 
 ##Actual plotting
@@ -179,13 +181,14 @@ ylab<-expression(RF~(Wm^-2))
 plot(AlbForce.avg.def, type='l', col='grey20', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=2), at=seq(from=l.min, to=l.max, by=2), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(AlbForce.avg.def+1.96*uncertainty.def,rev(AlbForce.avg.def-1.96*uncertainty.def)),border=NA, col='gray')
 lines(AlbForce.avg.def,  col='grey20', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
+dev.copy(png, filename="Figures/AlbedoDeforest.png", width=500, height=425);dev.off()
 
 #Pull forcings/uncertainties for compshift
 AlbForce.comp<-AlbForce.veg[which(AlbForce.veg[,13]%in%Comp),]
@@ -211,6 +214,7 @@ abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(AlbForce.avg.comp+1.96*uncertainty.comp,rev(AlbForce.avg.comp-1.96*uncertainty.comp)),border=NA, col='gray')
 lines(AlbForce.avg.comp,  col='grey20', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
+dev.copy(png, filename="Figures/AlbedoCompshift.png", width=500, height=425);dev.off()
 
 
 #Fancy albedo change plot
@@ -225,9 +229,11 @@ axis(side=2, labels=seq(from=-2, to=16, by=4), at=seq(-0.02, to=0.16, by=0.04), 
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 box(lwd=3)
+abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(AlbedoChange+1.96*uncertainty.alb,rev(AlbedoChange-1.96*uncertainty.alb)),border=NA, col='gray')
 lines(AlbedoChange, lwd=5)
-abline(h=0, col='red4', lty=2, lwd=3)
+dev.copy(png, filename="Figures/AlbedoChange.png", width=600, height=400);dev.off()
+
 
 #Albedo RF plot
 par(mar=c(5,5,4,2))
@@ -244,6 +250,7 @@ polygon(x=c(1:12,12:1),y=c(AlbForce.avg+1.96*uncertainty.force,rev(AlbForce.avg-
 #abline(v=c(3.75,5.6,8.25,10.2), lty=3)
 lines(AlbForce.avg, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
+dev.copy(png, filename="Figures/AlbedoForcing.png", width=600, height=400);dev.off()
 
 #Seasonal excerpts
 wintermonths<-c(1:2, 12)

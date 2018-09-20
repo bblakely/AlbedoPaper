@@ -1,13 +1,11 @@
 #Redo combine force with real data
 source('RecalcAlbedo.R')
-source('CompareST_month_v2.R')
+source('CompareST_month_v3.R')
 source('SnowShiftApproach2.3.R')
-source('STsnow_Force.R')
+source('STsnow_Force_v2.R')
 
 writefile<-FALSE #Do you want to write finalized change and forcing files?
 vegplot<-TRUE #Do you want the 25-odd individual converison plots?
-
-par<-pardefault
 
 alb.diff<-data.frame(d.alb.month)
 st.diff<-data.frame(TableDiffs)
@@ -170,12 +168,12 @@ par(mar=c(2,3,2,2))
 dest<-order(key$MOD)
 
 for(i in dest){
-  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-30,30), ylab='forcing', lty=2,lwd=2, 
+  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-25,15), ylab='forcing', lty=2,lwd=2, 
        main=paste(key$PAL[i],"to",key$MOD[i]), type='l', col='dark gray', font=2)
   lines(colMeans(st.force[convert.code==key$Code[i],], na.rm=TRUE), lty=2, col='forest green', lwd=2)
   lines(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE), lwd=3)
   abline(h=0, col='red')
-  text(9,20, paste("n=",length(which(convert.code==key$Code[i]))," (",
+  text(9,12, paste("n=",length(which(convert.code==key$Code[i]))," (",
                     round((length(which(convert.code==key$Code[i]))/length(which(!is.na(convert.code)))),3)*100,"%",
                     ")", sep=''), cex=0.8, font=2)
   text(8,-20, paste("Annual RF:", 

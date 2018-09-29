@@ -378,8 +378,8 @@ mean(STChg.comp.avg[c(6:8)])
 #### Veg shift Plots ####
 
 # These numbers should be the reverse of albedo, i.e. -2 to 6 becomes -6 to 2
-l.max<-1
-l.min<-(-12)
+l.max<-1#1
+l.min<-(-1)#(-12)
 span<-c(l.min, l.max)
 
 ## Deforestation ##
@@ -387,7 +387,7 @@ par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
 plot(STForce.avg.def, type='l', col='forest green', ylim=span, lwd=2, main="Deforestation",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=0.5), at=seq(from=l.min, to=l.max, by=0.5), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
@@ -404,7 +404,7 @@ ylab<-expression(RF~(Wm^-2))
 plot(STForce.avg.comp, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max, by=5), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=0.5), at=seq(from=l.min, to=l.max, by=0.5), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
@@ -473,4 +473,17 @@ print("winter st interval:");print(c(mean(smoothRF[wintermonths])+ST.force.w.ci,
 ST.force.s.ci<-mean(uncertainty.force[summermonths])
 print("summer st interval:");print(c(mean(smoothRF[summermonths])+ST.force.w.ci,mean(smoothRF[summermonths])-ST.force.w.ci))
 
+#ST by veg change
+#3 panels; compare ST profiles, yearly, gs stchange
+
+#Profiles
+par(mfcol=c(2,2), mar=c(2,4,4,1))
+lablim=1.3
+plot(STChg.def.avg, type='l', ylim=c(-lablim,lablim), main='Deforest', xaxt='n', ylab='ST chg (Deg. C)');abline(h=0, lty=2)
+plot(STChg.comp.avg, type='l', ylim=c(-lablim,lablim), main='Comp shift', ylab='ST chg (Deg. C)', xlab='Month'); abline(h=0, lty=2)
+
+#Bars
+barplot(c(mean(STChg.def.avg), mean(STChg.comp.avg)),names.arg=c('Deforest', 'Comp Shift'), ylim=c(-lablim, lablim), main='Annual')
+gsmonths<-c(5:9)
+barplot(c(mean(STChg.def.avg[gsmonths]), mean(STChg.comp.avg[gsmonths])),names.arg=c('Deforest', 'Comp Shift'), ylim=c(-lablim, lablim), main='Growing season')
 

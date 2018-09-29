@@ -290,6 +290,10 @@ box(lwd=3)
 polygon(x=c(1:12,12:1),y=c(smtop,rev(smbottom)),border=NA, col='gray')
 lines(AvgRF, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
+
+dev.copy(png, filename="Figures/SnowAlbedo.png", width=600, height=400);dev.off()
+
+
 #####
 
 write.csv(AvgRF,'WriteFile/SnowForcing1.csv')

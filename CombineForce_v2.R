@@ -2,7 +2,7 @@
 source('RecalcAlbedo.R')
 source('CompareST_month_v3.R')
 source('SnowShiftApproach2.3.R')
-source('STsnow_Force_v2.R')
+source('STsnow_Force_v3.R')
 
 writefile<-FALSE #Do you want to write finalized change and forcing files?
 vegplot<-TRUE #Do you want the 25-odd individual converison plots?
@@ -31,6 +31,8 @@ snow.st<-snow.force.st
 
 
 Total<-(alb+st+snow.alb+snow.st)
+Veg<-(alb+st)
+Snow<-(snow.alb+snow.st)
 offset<-(st+snow.alb+snow.st)
 
 mean(Total)/(mean(alb))
@@ -55,11 +57,11 @@ lines(snow.st, col='light blue', lwd=4,lty=3)
 lines(Total, lwd=5)
 abline(h=0,lty=2, lwd=3,col='red4')
 
-legend(x=4,y=-2.1, legend=c('Veg. Albedo','Veg. LST','Snow Albedo','Snow LST','Total'), lty=c(3,3,3,3,1),
+legend(x=5,y=-2, legend=c('Veg. Albedo','Veg. LST','Snow Albedo','Snow LST','Total'), lty=c(3,3,3,3,1),
 lwd=c(4,4,4,4,4),col=c('gray',"forest green","dark blue","light blue","black"),
-ncol=2, x.intersp=0.1,y.intersp=0.6, text.width=1.5, text.font=2, bty='n', cex=1.1)
+ncol=2, x.intersp=0.2,y.intersp=0.6, text.width=1.5, text.font=2, bty='n', cex=0.8, seg.len=1)
 #This looks bad in the preview but is fine when zoomed up
-
+dev.copy(png, filename='Figures/AnnualProf_All.png', width=700, height=530); dev.off()
 
 #### Barplots ####
 
@@ -96,6 +98,8 @@ axis(side=4, labels=seq(from=-2, to=0.8, by=0.5), at=seq(from=-2, to=0.8, by=0.5
 abline(h=0, lwd=3)
 box(lwd=3)
 
+dev.copy(png, filename="Figures/IndivBars", width=1050, height=750); dev.off()
+
 #When exporting, 1050 x 750 works well
 
 #### Combined Plots ####
@@ -106,7 +110,7 @@ Tot.ann<-Tot.ann #Already made for little plot
 #Setting type to 'inset' makes a plot where the individual plot (above) can be used as an inset;
 #Otherwise it is sized to be a stand-alone plot
 type<-'inset'
-if(type=='inset'){ylim=c(-2,3)}else{ylim=c(-2,1)}
+if(type=='inset'){ylim=c(-2.5,3)}else{ylim=c(-2,1)}
 
 barplot(c(Tot.ann, veg.comb,sno.comb),col=c("black","gray","dark blue"),  
         main="Combined RF",names.arg=c("Combined","Vegetation","Snow"), font=2,
@@ -130,6 +134,7 @@ mtext(side=2, text=ylab, line=2.5, cex=2.5, font=2)
 abline(h=0, lwd=3)
 box(lwd=3)
 
+dev.copy(png, filename="Figures/ComboBars.png", width=800, height=640);dev.off()
 #When exporting, 800 x 640 works well
 
 #####
@@ -160,10 +165,13 @@ if(writefile==TRUE){
 
 ### Vegetation forcing plots ###
 #### Multi-veg plots ####
+par.print<-FALSE
 if(vegplot==TRUE){
 key<-read.csv('convertcode_key.csv')
 par(mfrow=c(2,2))
-par(mar=c(2,3,2,2))
+par(mar=c(2,2,2,2))
+
+if(par.print==TRUE){par(mfrow=c(1,1))}
 
 dest<-order(key$MOD)
 
@@ -180,6 +188,8 @@ for(i in dest){
                     round(mean(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE)),3)),
                     cex=0.8, font=2)
   box(lwd=3)
+  
+  if(par.print==TRUE){dev.copy(png, filename=paste("Figures/Fig5_Panels/", paste(key$PAL[i],"to",key$MOD[i]), ".png"), width=340, height=240);dev.off()}
   
 }
 }
@@ -279,11 +289,13 @@ par(xpd=FALSE) #These plots are prone to having lines outside plot bounds
 chglab<-c("Deforest","Shift DC", "Afforest", "Shift EG")
 
 #Sums
-barplot(albs.stack, names.arg=chglab,ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-90,45))
+barplot(albs.stack, names.arg=chglab,ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-90,30))
 barplot(sts, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2)
 barplot(tots, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
 abline(h=0, lwd=2, col='dark red', lty=2)
-legend (3,-20, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.8)
+legend (2.8,-10, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.67, text.font=2)
+
+dev.copy(png, filename="Figures/ComboVeg_Sum.png", width=600, height=400);dev.off()
 
 #Means
 ylab.st<-expression(Average~RF~(Wm^-2))
@@ -292,6 +304,10 @@ barplot(sts.u, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2
 barplot(tots.u, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
 abline(h=0, lwd=2, col='dark red', lty=2)
 #legend (3,-1, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.8)
+
+dev.copy(png, filename="Figures/ComboVeg_Mean.png", width=600, height=400);dev.off()
+
+
 #####
 
 

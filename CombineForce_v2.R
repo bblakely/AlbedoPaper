@@ -12,15 +12,23 @@ st.diff<-data.frame(TableDiffs)
 alb.force<-data.frame(AlbForce)
 st.force<-data.frame(TableForce)
 
+
+
 snow.force.alb<-AlbSnowRF
 snow.force.st<-STSnowRF
 
 veg.force<-data.frame(alb.force+st.force)
 
+def.force<-colMeans(STForce.def+AlbForce.def, na.rm=TRUE)[1:12]
+comp.force<-colMeans(STForce.comp+AlbForce.comp, na.rm=TRUE)[1:12]
+def.uncert<-(uncertainty.def.alb+uncertainty.def.st)
+comp.uncert<-(uncertainty.comp.alb+uncertainty.comp.st)
+
 rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "veg.force",
                         "Georef", "Georef.utm", "convert.code", "writefile",
                         "Deforest","Deforest.2", "Comp", "snow.force.alb", 'snow.force.st',
-                        'vegplot', "paleo.veg","modern.veg")))
+                        'vegplot', "paleo.veg","modern.veg", "def.force","comp.force",
+                        'def.uncert', 'comp.uncert'))))
 
 #Seasonal profiles
 
@@ -164,6 +172,43 @@ if(writefile==TRUE){
 
 
 ### Vegetation forcing plots ###
+#### Combined Deforest/Compshift
+l.max<-1
+l.min<-(-12)
+span<-c(l.min, l.max)
+par(mfrow=c(1,1), mar=c(5,6,4,2))
+
+#Comp shift
+ylab<-expression(RF~(Wm^-2))
+plot(comp.force, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
+#axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=4), at=seq(from=l.min, to=l.max, by=4), cex.axis=1.5, font=2)
+mtext(side=1, text="Month", line=3, cex=2, font=2)
+mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
+abline(h=0, col='red4', lty=2, lwd=3)
+polygon(x=c(1:12,12:1),y=c(comp.force+1.96*comp.uncert,rev(comp.force-1.96*comp.uncert)),border=NA, col='darkseagreen1')
+lines(comp.force,  col='forest green', ylim=c(-12, 1), lwd=2)
+box(lwd=3)
+
+#Deforest
+ylab<-expression(RF~(Wm^-2))
+plot(def.force, type='l', col='orange', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
+#axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=l.min, to=l.max, by=4), at=seq(from=l.min, to=l.max, by=4), cex.axis=1.5, font=2)
+mtext(side=1, text="Month", line=3, cex=2, font=2)
+mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
+abline(h=0, col='red4', lty=2, lwd=3)
+polygon(x=c(1:12,12:1),y=c(def.force+1.96*def.uncert,rev(def.force-1.96*def.uncert)),border=NA, col='navajowhite1')
+lines(def.force,  col='orange', ylim=c(-12, 1), lwd=2)
+box(lwd=3)
+#dev.copy(png, filename="Figures/AlbedoDeforest.png", width=500, height=425);dev.off()
+
+#dev.copy(png, filename="Figures/STCompshift.png", width=500, height=425);dev.off()
+
+
+
 #### Multi-veg plots ####
 par.print<-FALSE
 if(vegplot==TRUE){

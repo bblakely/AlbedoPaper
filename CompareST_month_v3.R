@@ -10,6 +10,8 @@ Paleo_day_raw<-read.csv('Paleo_day_v2.csv', skip=7)
 Paleo_night_raw<-read.csv('Paleo_night_v2.csv', skip=7) 
 
 diag.plots<-FALSE #Do you want diagnostic plots?
+vegshift.sep<-FALSE #Do you want separate long- and shortwave forcings by veg shift
+
 
 #number of observations; to use whenever we want all the rows (pixels)
 nobs=nrow(Modern_day_raw)
@@ -344,10 +346,10 @@ Comp<-c(-1,3,4) #This one is E to MX, E to DC, or MX to DC
 Urb<-c(12,14,21,22,25)
 
 ## Deforestation ##
-STForce.def<-STForce.veg[which(STForce.veg[,13]%in%Deforest),]
+STForce.def<-STForce.veg[which(STForce.veg[,13]%in%Deforest.2),]
 STForce.avg.def<-colMeans(STForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
-uncertainty.def<-rowSums(var.scl.def, na.rm=TRUE)
+uncertainty.def.st<-rowSums(var.scl.def, na.rm=TRUE)
 
 STChg.def<-STChg.veg[which(STChg.veg[,13]%in%Deforest),]
 STChg.def.avg<-colMeans(STChg.def[1:12], na.rm=TRUE)
@@ -366,7 +368,7 @@ STForce.nosnow.avg<-colMeans(STForce.nosnow[1:12], na.rm=TRUE)
 STForce.comp<-STForce.veg[which(STForce.veg[,13]%in%Comp),]
 STForce.avg.comp<-colMeans(STForce.comp[,1:12], na.rm=TRUE)
 var.scl.comp<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Comp)]
-uncertainty.comp<-rowSums(var.scl.comp)
+uncertainty.comp.st<-rowSums(var.scl.comp)
 
 STChg.comp<-STChg.veg[which(STChg.veg[,13]%in%Comp),]
 STChg.comp.avg<-colMeans(STChg.comp[1:12], na.rm=TRUE)
@@ -378,7 +380,8 @@ mean(STChg.comp.avg[c(6:8)])
 #### Veg shift Plots ####
 
 # These numbers should be the reverse of albedo, i.e. -2 to 6 becomes -6 to 2
-l.max<-1#1
+if(vegshift.sep==TRUE){
+l.max<-1
 l.min<-(-1)#(-12)
 span<-c(l.min, l.max)
 
@@ -391,7 +394,7 @@ axis(side=2, labels=seq(from=l.min, to=l.max, by=0.5), at=seq(from=l.min, to=l.m
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
-polygon(x=c(1:12,12:1),y=c(STForce.avg.def+1.96*uncertainty.def,rev(STForce.avg.def-1.96*uncertainty.def)),border=NA, col='darkseagreen1')
+polygon(x=c(1:12,12:1),y=c(STForce.avg.def+1.96*uncertainty.def.st,rev(STForce.avg.def-1.96*uncertainty.def.st)),border=NA, col='darkseagreen1')
 lines(STForce.avg.def,  col='forest green', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 dev.copy(png, filename="Figures/STDeforest.png", width=500, height=425);dev.off()
@@ -408,12 +411,11 @@ axis(side=2, labels=seq(from=l.min, to=l.max, by=0.5), at=seq(from=l.min, to=l.m
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
-polygon(x=c(1:12,12:1),y=c(STForce.avg.comp+1.96*uncertainty.comp,rev(STForce.avg.comp-1.96*uncertainty.comp)),border=NA, col='darkseagreen1')
+polygon(x=c(1:12,12:1),y=c(STForce.avg.comp+1.96*uncertainty.comp.st,rev(STForce.avg.comp-1.96*uncertainty.comp.st)),border=NA, col='darkseagreen1')
 lines(STForce.avg.comp,  col='forest green', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 dev.copy(png, filename="Figures/STCompshift.png", width=500, height=425);dev.off()
-
-
+}
 par(xpd=FALSE)
 #####
 

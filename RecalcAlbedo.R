@@ -9,6 +9,8 @@ source('RadKernel_extract.R')
 rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg", 'albkern')))
 
 Diagplot<-FALSE
+vegshift.sep<-FALSE #Do you want separate long- and shortwave forcings by veg shift
+
 
 #Read in raw data
 ModernAlbRaw<-read.csv('Albedo_Modern1.csv',skip=7)
@@ -164,7 +166,7 @@ Comp<-c(-1,3,4) #This one is E to MX, E to DC, or MX to DC
 AlbForce.def<-AlbForce.veg[which(AlbForce.veg[,13]%in%Deforest.2),]
 AlbForce.avg.def<-colMeans(AlbForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
-uncertainty.def<-rowSums(var.scl.def,na.rm=TRUE)
+uncertainty.def.alb<-rowSums(var.scl.def,na.rm=TRUE)
 
 AlbChange.def<-AlbChange.veg[which(AlbForce.veg[,13]%in%Deforest),]
 mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
@@ -176,6 +178,7 @@ span<-c(l.min, l.max)
 
 ##Actual plotting
 #RF for deforestation
+if(vegshift.sep==TRUE){
 par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
 plot(AlbForce.avg.def, type='l', col='grey20', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
@@ -185,16 +188,16 @@ axis(side=2, labels=seq(from=l.min, to=l.max, by=2), at=seq(from=l.min, to=l.max
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
-polygon(x=c(1:12,12:1),y=c(AlbForce.avg.def+1.96*uncertainty.def,rev(AlbForce.avg.def-1.96*uncertainty.def)),border=NA, col='gray')
+polygon(x=c(1:12,12:1),y=c(AlbForce.avg.def+1.96*uncertainty.def.alb,rev(AlbForce.avg.def-1.96*uncertainty.def.alb)),border=NA, col='gray')
 lines(AlbForce.avg.def,  col='grey20', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 dev.copy(png, filename="Figures/AlbedoDeforest.png", width=500, height=425);dev.off()
-
+}
 #Pull forcings/uncertainties for compshift
 AlbForce.comp<-AlbForce.veg[which(AlbForce.veg[,13]%in%Comp),]
 AlbForce.avg.comp<-colMeans(AlbForce.comp[,1:12], na.rm=TRUE)
 var.scl.comp<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Comp)]
-uncertainty.comp<-rowSums(var.scl.comp)
+uncertainty.comp.alb<-rowSums(var.scl.comp)
 
 AlbChange.comp<-AlbChange.veg[which(AlbForce.veg[,13]%in%Comp),]
 mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE)) #Yearly avg, deforested
@@ -202,6 +205,7 @@ mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE)) #Yearly avg, deforested
 
 
 #Plot RF for compshift
+if(vegshift.sep==TRUE){
 par(mar=c(5,6,4,2))
 ylab<-expression(RF~(Wm^-2))
 plot(AlbForce.avg.comp, type='l', col='grey20', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
@@ -211,11 +215,11 @@ axis(side=2, labels=seq(from=l.min, to=l.max, by=5), at=seq(from=l.min, to=l.max
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
-polygon(x=c(1:12,12:1),y=c(AlbForce.avg.comp+1.96*uncertainty.comp,rev(AlbForce.avg.comp-1.96*uncertainty.comp)),border=NA, col='gray')
+polygon(x=c(1:12,12:1),y=c(AlbForce.avg.comp+1.96*uncertainty.comp.alb,rev(AlbForce.avg.comp-1.96*uncertainty.comp.alb)),border=NA, col='gray')
 lines(AlbForce.avg.comp,  col='grey20', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 dev.copy(png, filename="Figures/AlbedoCompshift.png", width=500, height=425);dev.off()
-
+}
 
 #Fancy albedo change plot
 par(xpd=FALSE)

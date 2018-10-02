@@ -28,7 +28,7 @@ rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "veg.force
                         "Georef", "Georef.utm", "convert.code", "writefile",
                         "Deforest","Deforest.2", "Comp", "snow.force.alb", 'snow.force.st',
                         'vegplot', "paleo.veg","modern.veg", "def.force","comp.force",
-                        'def.uncert', 'comp.uncert'))))
+                        'def.uncert', 'comp.uncert', 'vegshift.sep'))))
 
 #Seasonal profiles
 
@@ -172,7 +172,7 @@ if(writefile==TRUE){
 
 
 ### Vegetation forcing plots ###
-#### Combined Deforest/Compshift
+#### Combined Deforest/Compshift####
 l.max<-1
 l.min<-(-12)
 span<-c(l.min, l.max)
@@ -190,6 +190,8 @@ abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(comp.force+1.96*comp.uncert,rev(comp.force-1.96*comp.uncert)),border=NA, col='darkseagreen1')
 lines(comp.force,  col='forest green', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
+dev.copy(png, filename="Figures/CombinedRFCompshift.png", width=500, height=425);dev.off()
+
 
 #Deforest
 ylab<-expression(RF~(Wm^-2))
@@ -203,10 +205,7 @@ abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(def.force+1.96*def.uncert,rev(def.force-1.96*def.uncert)),border=NA, col='navajowhite1')
 lines(def.force,  col='orange', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
-#dev.copy(png, filename="Figures/AlbedoDeforest.png", width=500, height=425);dev.off()
-
-#dev.copy(png, filename="Figures/STCompshift.png", width=500, height=425);dev.off()
-
+dev.copy(png, filename="Figures/CombinedRFDeforest.png", width=500, height=425);dev.off()
 
 
 #### Multi-veg plots ####
@@ -334,22 +333,26 @@ par(xpd=FALSE) #These plots are prone to having lines outside plot bounds
 chglab<-c("Deforest","Shift DC", "Afforest", "Shift EG")
 
 #Sums
+
+if(vegshift.sep==TRUE){
 barplot(albs.stack, names.arg=chglab,ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-90,30))
 barplot(sts, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2)
 barplot(tots, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
-abline(h=0, lwd=2, col='dark red', lty=2)
 legend (2.8,-10, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.67, text.font=2)
+}else{barplot(tots, names.arg=chglab, ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-90,30))}
+abline(h=0, lwd=2, col='dark red', lty=2)
 
 dev.copy(png, filename="Figures/ComboVeg_Sum.png", width=600, height=400);dev.off()
 
 #Means
 ylab.st<-expression(Average~RF~(Wm^-2))
+if(vegshift.sep==TRUE){
 barplot(albs.stack.u, names.arg=chglab, font=2, font.lab=2, ylab=ylab.st)
 barplot(sts.u, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2)
 barplot(tots.u, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
+}else{barplot(tots.u, names.arg=chglab, font=2, font.lab=2, ylab=ylab.st)}
 abline(h=0, lwd=2, col='dark red', lty=2)
 #legend (3,-1, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.8)
-
 dev.copy(png, filename="Figures/ComboVeg_Mean.png", width=600, height=400);dev.off()
 
 

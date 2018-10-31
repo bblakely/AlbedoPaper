@@ -348,11 +348,14 @@ Urb<-c(12,14,21,22,25)
 ## Deforestation ##
 STForce.def<-STForce.veg[which(STForce.veg[,13]%in%Deforest.2),]
 STForce.avg.def<-colMeans(STForce.def[,1:12], na.rm=TRUE)
-var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
+var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest.2)]
 uncertainty.def.st<-rowSums(var.scl.def, na.rm=TRUE)
+
 
 STChg.def<-STChg.veg[which(STChg.veg[,13]%in%Deforest),]
 STChg.def.avg<-colMeans(STChg.def[1:12], na.rm=TRUE)
+uncertainty.def.st.temp<-rowSums(var.scl.def[,which(as.numeric(colnames(var.scl.def))%in%Deforest.2)], na.rm=TRUE)
+
 mean(STChg.def.avg)
 mean(STChg.def.avg[c(1:2,12)])
 mean(STChg.def.avg[c(6:8)])
@@ -370,8 +373,11 @@ STForce.avg.comp<-colMeans(STForce.comp[,1:12], na.rm=TRUE)
 var.scl.comp<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Comp)]
 uncertainty.comp.st<-rowSums(var.scl.comp)
 
+
 STChg.comp<-STChg.veg[which(STChg.veg[,13]%in%Comp),]
 STChg.comp.avg<-colMeans(STChg.comp[1:12], na.rm=TRUE)
+uncertainty.comp.st.temp<-rowSums(var.scl.comp[,which(as.numeric(colnames(var.scl.comp))%in%Comp)], na.rm=TRUE)
+
 mean(STChg.comp.avg)
 mean(STChg.comp.avg[c(1:2,12)])
 mean(STChg.comp.avg[c(6:8)])
@@ -417,7 +423,7 @@ box(lwd=3)
 dev.copy(png, filename="Figures/STCompshift.png", width=500, height=425);dev.off()
 }
 par(xpd=FALSE)
-#####
+
 
 
 ### Regional ###
@@ -475,17 +481,18 @@ print("winter st interval:");print(c(mean(smoothRF[wintermonths])+ST.force.w.ci,
 ST.force.s.ci<-mean(uncertainty.force[summermonths])
 print("summer st interval:");print(c(mean(smoothRF[summermonths])+ST.force.w.ci,mean(smoothRF[summermonths])-ST.force.w.ci))
 
-#ST by veg change
-#3 panels; compare ST profiles, yearly, gs stchange
 
-#Profiles
-par(mfcol=c(2,2), mar=c(2,4,4,1))
-lablim=1.3
-plot(STChg.def.avg, type='l', ylim=c(-lablim,lablim), main='Deforest', xaxt='n', ylab='ST chg (Deg. C)');abline(h=0, lty=2)
-plot(STChg.comp.avg, type='l', ylim=c(-lablim,lablim), main='Comp shift', ylab='ST chg (Deg. C)', xlab='Month'); abline(h=0, lty=2)
+####ST vegtype Bars####
 
-#Bars
-barplot(c(mean(STChg.def.avg), mean(STChg.comp.avg)),names.arg=c('Deforest', 'Comp Shift'), ylim=c(-lablim, lablim), main='Annual')
-gsmonths<-c(5:9)
-barplot(c(mean(STChg.def.avg[gsmonths]), mean(STChg.comp.avg[gsmonths])),names.arg=c('Deforest', 'Comp Shift'), ylim=c(-lablim, lablim), main='Growing season')
+par(mfrow=c(1,3), mar=c(2,5.1,4,0.3))
+gsmonths<-c(6:8)
 
+barplot(c(mean(STChg.def.avg), mean(STChg.comp.avg)), ylim=c(-lablim, lablim), main='Annual',col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, ylab=ylab, cex.lab=2, cex.main=1.5, font.axis=2)
+abline(h=0);arrows()
+legend(0.1,-0.5, legend=c('Deforest', 'Comp Shift'), fill=c('orange','forest green'), bty='n', cex=1.3, text.font=2)
+barplot(c(mean(STChg.def.avg[gsmonths]), mean(STChg.comp.avg[gsmonths])), ylim=c(-lablim, lablim), main='Summer', col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, cex.main=1.5, font.axis=2)
+abline(h=0)
+barplot(c(mean(STChg.def.avg[wintermonths]), mean(STChg.comp.avg[wintermonths])), ylim=c(-lablim, lablim), main='Winter', col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, cex.main=1.5, font.axis=2)
+abline(h=0)
+dev.copy(png, filename="Figures/STCompDef.png", width=585, height=300);dev.off()
+par(mfrow=c(1,1)) #Reset PAR

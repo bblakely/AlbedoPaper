@@ -5,13 +5,12 @@ source('SnowShiftApproach2.3.R')
 source('STsnow_Force_v3.R')
 
 writefile<-FALSE #Do you want to write finalized change and forcing files?
-vegplot<-TRUE #Do you want the 25-odd individual converison plots?
+vegplot<-TRUE #Do you want the 25-ish individual converison plots?
 
 alb.diff<-data.frame(d.alb.month)
 st.diff<-data.frame(TableDiffs)
 alb.force<-data.frame(AlbForce)
 st.force<-data.frame(TableForce)
-
 
 
 snow.force.alb<-AlbSnowRF
@@ -28,8 +27,10 @@ rm(list=setdiff(ls(), c("alb.force", "st.force","alb.diff","st.diff", "veg.force
                         "Georef", "Georef.utm", "convert.code", "writefile",
                         "Deforest","Deforest.2", "Comp", "snow.force.alb", 'snow.force.st',
                         'vegplot', "paleo.veg","modern.veg", "def.force","comp.force",
-                        'def.uncert', 'comp.uncert', 'vegshift.sep'))))
+                        'def.uncert', 'comp.uncert', 'vegshift.sep','STChg.comp.avg', 
+                        'uncertainty.comp.st.temp','STChg.def.avg', 'uncertainty.def.st.temp')))
 
+par(mfrow=c(1,1))
 #Seasonal profiles
 
 alb<-colMeans(alb.force, na.rm=TRUE)
@@ -172,12 +173,13 @@ if(writefile==TRUE){
 
 
 ### Vegetation forcing plots ###
-#### Combined Deforest/Compshift####
+#### Combined RF Deforest/Compshift####
 l.max<-1
 l.min<-(-12)
 span<-c(l.min, l.max)
 par(mfrow=c(1,1), mar=c(5,6,4,2))
 
+##Radiative Forcing
 #Comp shift
 ylab<-expression(RF~(Wm^-2))
 plot(comp.force, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
@@ -191,7 +193,6 @@ polygon(x=c(1:12,12:1),y=c(comp.force+1.96*comp.uncert,rev(comp.force-1.96*comp.
 lines(comp.force,  col='forest green', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 dev.copy(png, filename="Figures/CombinedRFCompshift.png", width=500, height=425);dev.off()
-
 
 #Deforest
 ylab<-expression(RF~(Wm^-2))
@@ -207,33 +208,75 @@ lines(def.force,  col='orange', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
 dev.copy(png, filename="Figures/CombinedRFDeforest.png", width=500, height=425);dev.off()
 
+##Surface Temperature
+#par(mfcol=c(2,2), mar=c(2,4,4,1))
+lablim=1.3; span<-c(-lablim,lablim)
+ylab<-expression(Delta~LST~(degree*C))
+
+#Deforest
+plot(STChg.def.avg, type='l', col='orange', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
+#axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-lablim, to=lablim, by=0.5), at=seq(from=-lablim, to=lablim, by=0.5), cex.axis=1.5, font=2)
+#mtext(side=1, text="Month", line=3, cex=2, font=2)
+mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
+abline(h=0, col='red4', lty=2, lwd=3)
+polygon(x=c(1:12,12:1),y=c(STChg.def.avg+1.96*uncertainty.def.st.temp,rev(STChg.def.avg-1.96*uncertainty.def.st.temp)),border=NA, col='navajowhite1')
+lines(STChg.def.avg,  col='orange', lwd=2)
+box(lwd=3)
+dev.copy(png, filename="Figures/STDeforest.png", width=500, height=425);dev.off()
+
+
+#Comp Shift
+plot(STChg.comp.avg, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
+#axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-lablim, to=lablim, by=0.5), at=seq(from=-lablim, to=lablim, by=0.5), cex.axis=1.5, font=2)
+mtext(side=1, text="Month", line=3, cex=2, font=2)
+mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
+abline(h=0, col='red4', lty=2, lwd=3)
+polygon(x=c(1:12,12:1),y=c(STChg.comp.avg+1.96*uncertainty.comp.st.temp,rev(STChg.comp.avg-1.96*uncertainty.comp.st.temp)),border=NA, col='darkseagreen1')
+lines(STChg.comp.avg,  col='forest green', lwd=2)
+box(lwd=3)
+dev.copy(png, filename="Figures/STCompShift.png", width=500, height=425);dev.off()
+
+
 
 #### Multi-veg plots ####
-par.print<-FALSE
+par.print<-TRUE
 if(vegplot==TRUE){
 key<-read.csv('convertcode_key.csv')
 par(mfrow=c(2,2))
-par(mar=c(2,2,2,2))
+par(mar=c(2,2.5,1,2))
 
 if(par.print==TRUE){par(mfrow=c(1,1))}
 
 dest<-order(key$MOD)
 
 for(i in dest){
-  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-25,15), ylab='forcing', lty=2,lwd=2, 
-       main=paste(key$PAL[i],"to",key$MOD[i]), type='l', col='dark gray', font=2)
-  lines(colMeans(st.force[convert.code==key$Code[i],], na.rm=TRUE), lty=2, col='forest green', lwd=2)
+  if(vegshift.sep==TRUE){
+  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-25,15), ylab='RF', lty=2,lwd=2, 
+       type='l', col='dark gray', font=2, cex.axis=1.5, axes=FALSE)
+    #main=paste(key$PAL[i],"to",key$MOD[i])
+    lines(colMeans(st.force[convert.code==key$Code[i],], na.rm=TRUE), lty=2, col='forest green', lwd=2)
   lines(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE), lwd=3)
+  }else{
+    plot(colMeans(veg.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-25,15), ylab='RF',lwd=2, 
+        type='l', font=2, cex.axis=1., cex.axis=1.5, axes=FALSE)
+    if(key$MOD[i]=="EG"){axis(side=2, labels = c(0,-20), at=c(0,-20), font=2, cex.axis=2)}
+    if(key$PAL[i]=="CR"){axis(side=1, labels=c(2,6,10), at=c(2,6,10), font=2, cex.axis=2)}
+  }
+  
   abline(h=0, col='red')
   text(9,12, paste("n=",length(which(convert.code==key$Code[i]))," (",
                     round((length(which(convert.code==key$Code[i]))/length(which(!is.na(convert.code)))),3)*100,"%",
-                    ")", sep=''), cex=0.8, font=2)
+                    ")", sep=''), cex=1.5, font=2)
   text(8,-20, paste("Annual RF:", 
                     round(mean(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE)),3)),
-                    cex=0.8, font=2)
+                    cex=1.5, font=2)
   box(lwd=3)
   
-  if(par.print==TRUE){dev.copy(png, filename=paste("Figures/Fig5_Panels/", paste(key$PAL[i],"to",key$MOD[i]), ".png"), width=340, height=240);dev.off()}
+  if(par.print==TRUE){dev.copy(png, filename=paste("Figures/Fig5_Panels/", paste(key$PAL[i],"to",key$MOD[i]), ".png"), width=280, height=190);dev.off()} #340x240 was previous size
   
 }
 }
@@ -398,7 +441,5 @@ hypothetical<-
 
 print(hypothetical)
 (hypothetical-actual)/actual #percent change!
-
-#####
 
 

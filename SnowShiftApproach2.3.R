@@ -429,17 +429,29 @@ Georef_shift.cons$Lon<-Georef_shift.cons$Lon+0.2 #Not sure why this is done; the
 #Expanded version of product creation
 mseas.cons<-rep(0, nrow(ModDAT.cons))
 eseas.cons<-rep(0, nrow(EarDAT.cons))
+
+mdates.cons<-rep(0, nrow(ModDAT.cons))
+edates.cons<-rep(0, nrow(EarDAT.cons))
+
 for (r in 1:nrow(ModDAT.cons)){
   mvec.cons<-(approx(as.numeric(ModDAT.cons[r,]), n=46)$y)
   evec.cons<-approx(as.numeric(EarDAT.cons[r,]), n=46)$y
   
   mseas.cons[r]<-length(which(mvec.cons>cutoff)) #Total number of dates with snow cover
   eseas.cons[r]<-length(which(evec.cons>cutoff))
+
+  mdates.cons[r]<-min(which(mvec.cons<cutoff), na.rm=TRUE)
+  edates.cons[r]<-min(which(evec.cons<cutoff), na.rm=TRUE)
 }
 
-seas.diff<-((mseas.cons-eseas.cons)*8)-4 # *8 for 8 days per date, -4 to center last date. The threshhold could be crossed at any time in the 8 day period and that splits the difference.
+seas.diff<-(mseas.cons*8-eseas.cons*8)-4 # *8 for 8 days per date, -4 to center last date. The threshhold could be crossed at any time in the 8 day period and that splits the difference.
 seas.prod<-data.frame(cbind(Georef_shift.cons$Lon, Georef_shift.cons$Lat,seas.diff)); colnames(seas.prod)<-c('Lon','Lat','diff')
 #write.csv(seas.prod, "WriteFile/Meltseason_diff1.csv", row.names=FALSE)
+
+dates.diff<-(mdates.cons*8-edates.cons*8)-4
+dates.prod<-data.frame(cbind(Georef_shift.cons$Lon, Georef_shift.cons$Lat,dates.diff)); colnames(dates.prod)<-c('Lon','Lat','diff')
+write.csv(dates.prod, "WriteFile/Dates_diff.csv", row.names=FALSE)
+
 
 #Plots with direct monthly differences (just curious)
 par(mfrow=c(2,4), mar=c(2,2,3,2))

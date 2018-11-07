@@ -495,4 +495,5 @@ abline(h=0)
 barplot(c(mean(STChg.def.avg[wintermonths]), mean(STChg.comp.avg[wintermonths])), ylim=c(-lablim, lablim), main='Winter', col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, cex.main=1.5, font.axis=2)
 abline(h=0)
 dev.copy(png, filename="Figures/STCompDef.png", width=585, height=300);dev.off()
+
 par(mfrow=c(1,1)) #Reset PAR

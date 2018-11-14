@@ -5,8 +5,6 @@ ModAlbedo<-read.csv('Albedo_Modern_Snowanalysis.csv', skip=7)
 HistAlbedo<-read.csv('Albedo_Paleo_Snowanalysis.csv', skip=7)
 DatAlbedo<-read.csv('Modis_Snowanalysis.csv',skip=7)
 
-#par<-pardefault
-
 #Clip to area of interest
 Albedo<-HistAlbedo
 Albedo<-Albedo[Albedo$Lon<(-75),]
@@ -157,7 +155,7 @@ for (n in 1:nobs){
 }
 
 
-####Fill this out at some point to get large plots####
+####Older code used to find large-magnitude plots for supplement (typical shifts were too small to see graphically)####
 
 #shift.mag<-as.matrix(HistAlbs-AlbedoDAT) # All changes in albedo
 #shift.avg<-rowMeans(shift.mag[,start:end]) #Avg changes in albdeo (per pixel)
@@ -462,6 +460,28 @@ for(i in c(11:12, 1:5)){
   plot(rast.m-rast.e, useRaster=FALSE, col=paldiff(16), breaks=c(-115, seq(-70,70, length.out=15),115), main=month.name[i])
   
 }
+
+
+}
+
+#####
+
+####Reporting numbers####
+if(reportnum==TRUE){
+  
+  #Change in snowmelt date
+  mean(mseas-eseas)*8
+  
+  #Albedo snow forcings
+  
+  spr.sno<-mean(rowMeans(TableRF[,SpringDays])); print(spr.sno) #Spring snow forcing
+  spr.sno.ci<-sd(rowMeans(TableRF[,SpringDays]))*2
+  print("albedo snow spr interval");print(c(spr.sno+spr.sno.ci, spr.sno-spr.sno.ci))
+  
+  mean(rowMeans(TableRF))#Annual snow forcing
+  ann.sno.ci<-sd(rowMeans(TableRF))*2
+  print("albedo snow ann interval");print(c(ann.sno+ann.sno.ci, ann.sno-ann.sno.ci))
+
 }
 #####
 

@@ -183,3 +183,35 @@ print("st snow wnt interval");print(c(wnt.sno+wnt.sno.ci, wnt.sno-wnt.sno.ci))
 
 
 force.month->STSnowRF #Rename for combine force
+
+####Reporting numbers####
+if(reportnum==TRUE){
+#Prepare SWE
+dif.dat.sub<-dif.dat
+dif.dat.sub[(paleo.raw$B1[2:24535]==0),]<-NA
+snow.change.num<-colMeans(dif.dat.sub, na.rm=TRUE)
+
+#SWE changes
+mean(snow.change.num) #Average SWE change
+min(rowMeans(dif.dat.sub[,c(1:5,11:12)], na.rm=TRUE), na.rm=TRUE) #Large SWE changes in UP
+
+#LST change from SWE
+mean(colMeans(snow.shift.px[c(7,1:2)])) #LST change, winter
+mean(colMeans(snow.shift.px[c(3:5)])) #LST change, spring
+
+#Forcings
+mean(rowMeans(forcing.px[,SpringDays], na.rm=TRUE), na.rm=TRUE)
+spr.sno.ci<-sd(rowMeans(forcing.px[,SpringDays], na.rm=TRUE), na.rm=TRUE)*2
+print("st snow spr interval");print(c(spr.sno+spr.sno.ci, spr.sno-spr.sno.ci))
+
+mean(rowMeans(forcing.px[,WinterDays], na.rm=TRUE), na.rm=TRUE)
+wnt.sno.ci<-sd(rowMeans(forcing.px[,WinterDays], na.rm=TRUE), na.rm=TRUE)*2
+print("st snow wnt interval");print(c(wnt.sno+wnt.sno.ci, wnt.sno-wnt.sno.ci))
+
+mean(rowMeans(forcing.px, na.rm=TRUE), na.rm=TRUE) #Annual forcing
+ann.sno.ci<-sd(rowMeans(forcing.px, na.rm=TRUE), na.rm=TRUE)*2
+print("st snow ann interval");print(c(ann.sno+ann.sno.ci, ann.sno-ann.sno.ci))
+
+}
+
+#####

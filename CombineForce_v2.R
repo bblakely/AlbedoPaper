@@ -1,3 +1,6 @@
+
+reportnum<-FALSE #Set to true if you want to generate and read out the numeric values reported in paper; will report throughout run
+
 #Redo combine force with real data
 source('RecalcAlbedo.R')
 source('CompareST_month_v3.R')
@@ -6,6 +9,7 @@ source('STsnow_Force_v3.R')
 
 writefile<-FALSE #Do you want to write finalized change and forcing files?
 vegplot<-TRUE #Do you want the 25-ish individual converison plots?
+
 
 alb.diff<-data.frame(d.alb.month)
 st.diff<-data.frame(TableDiffs)
@@ -442,4 +446,21 @@ hypothetical<-
 print(hypothetical)
 (hypothetical-actual)/actual #percent change!
 
-
+#####
+####Reporting numbers####
+if(reportnum==TRUE){
+  
+  #Seasonal trends
+  mean(Veg[c(1:2,12)])#Winter veg forcings
+  mean(Snow[c(1:2,12)])#Winter snow forcings (not reported quantitatively)
+  
+  mean(Total[3:5])#Spring total forcings
+  mean(Total[6:8])#Summer total forcings
+  mean(Total[9:11])#Fall total forcings
+  
+  #Offseting
+  mean(Snow)/mean(Total)#Snow percent offset
+  mean(Veg) #Veg alone
+  mean(Total) #With snow offset
+}
+#####

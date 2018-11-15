@@ -106,14 +106,13 @@ abline(v=2.5, lwd=3, lty=3)
 text(labloc[2],-1,"VEG", cex=2.5, font=2)
 text(mean(c(labloc[3], labloc[4])),-1,"SNOW", cex=2.5, font=2)
 
-axis(side=4, labels=seq(from=-2, to=0.8, by=0.5), at=seq(from=-2, to=0.8, by=0.5), cex.axis=2.2, font=2)
+axis(side=4, labels=seq(from=-2, to=0.8, by=1), at=seq(from=-2, to=0.8, by=1), cex.axis=2.2, font=2)
 #mtext(side=2, text=ylab, line=2.5, cex=2.4, font=2)
 abline(h=0, lwd=3)
 box(lwd=3)
 
-dev.copy(png, filename="Figures/IndivBars", width=1050, height=750); dev.off()
+dev.copy(png, filename="Figures/IndivBars.png", width=575, height=412); dev.off()
 
-#When exporting, 1050 x 750 works well
 
 #### Combined Plots ####
 veg.comb<-alb.ann+st.ann
@@ -196,7 +195,7 @@ abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(comp.force+1.96*comp.uncert,rev(comp.force-1.96*comp.uncert)),border=NA, col='darkseagreen1')
 lines(comp.force,  col='forest green', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
-dev.copy(png, filename="Figures/CombinedRFCompshift.png", width=500, height=425);dev.off()
+dev.copy(png, filename="Figures/CombinedRFCompshift.png", width=410, height=350);dev.off()
 
 #Deforest
 ylab<-expression(RF~(Wm^-2))
@@ -210,7 +209,7 @@ abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(def.force+1.96*def.uncert,rev(def.force-1.96*def.uncert)),border=NA, col='navajowhite1')
 lines(def.force,  col='orange', ylim=c(-12, 1), lwd=2)
 box(lwd=3)
-dev.copy(png, filename="Figures/CombinedRFDeforest.png", width=500, height=425);dev.off()
+dev.copy(png, filename="Figures/CombinedRFDeforest.png", width=410, height=350);dev.off()
 
 ##Surface Temperature
 #par(mfcol=c(2,2), mar=c(2,4,4,1))
@@ -221,28 +220,28 @@ ylab<-expression(Delta~LST~(degree*C))
 plot(STChg.def.avg, type='l', col='orange', ylim=span, lwd=2, main="Deforest",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-lablim, to=lablim, by=0.5), at=seq(from=-lablim, to=lablim, by=0.5), cex.axis=1.5, font=2)
-#mtext(side=1, text="Month", line=3, cex=2, font=2)
+axis(side=2, labels=seq(from=-lablim, to=lablim, by=1), at=seq(from=-lablim, to=lablim, by=1), cex.axis=1.5, font=2)
+mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(STChg.def.avg+1.96*uncertainty.def.st.temp,rev(STChg.def.avg-1.96*uncertainty.def.st.temp)),border=NA, col='navajowhite1')
 lines(STChg.def.avg,  col='orange', lwd=2)
 box(lwd=3)
-dev.copy(png, filename="Figures/STDeforest.png", width=500, height=425);dev.off()
+dev.copy(png, filename="Figures/STDeforest.png", width=410, height=350);dev.off()
 
 
 #Comp Shift
 plot(STChg.comp.avg, type='l', col='forest green', ylim=span, lwd=2, main="Comp Shift",cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-lablim, to=lablim, by=0.5), at=seq(from=-lablim, to=lablim, by=0.5), cex.axis=1.5, font=2)
-mtext(side=1, text="Month", line=3, cex=2, font=2)
+axis(side=2, labels=seq(from=-lablim, to=lablim, by=1), at=seq(from=-lablim, to=lablim, by=1), cex.axis=1.5, font=2)
+#mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(STChg.comp.avg+1.96*uncertainty.comp.st.temp,rev(STChg.comp.avg-1.96*uncertainty.comp.st.temp)),border=NA, col='darkseagreen1')
 lines(STChg.comp.avg,  col='forest green', lwd=2)
 box(lwd=3)
-dev.copy(png, filename="Figures/STCompShift.png", width=500, height=425);dev.off()
+dev.copy(png, filename="Figures/STCompShift.png", width=410, height=350);dev.off()
 
 
 
@@ -389,7 +388,7 @@ legend (2.8,-10, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest gree
 }else{barplot(tots, names.arg=chglab, ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-90,30))}
 abline(h=0, lwd=2, col='dark red', lty=2)
 
-dev.copy(png, filename="Figures/ComboVeg_Sum.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/ComboVeg_Sum.png", width=400, height=300);dev.off()
 
 #Means
 ylab.st<-expression(Average~RF~(Wm^-2))

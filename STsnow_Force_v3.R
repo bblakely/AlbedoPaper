@@ -143,13 +143,13 @@ uncertainty.force<-rowSums(var.scl.force, na.rm=TRUE)
 
 
 par(mar=c(5,5,4,2))
-plot(force.month, ylim=c(-1,1), type='l',lwd='3', xaxt='n',yaxt='n',xlab='',ylab='', main='Snow LST RF',cex.lab=2.2, cex.main=2.5,bty="n")
+plot(force.month, ylim=c(-1.1,1.1), type='l',lwd='3', xaxt='n',yaxt='n',xlab='',ylab='', main='Snow LST RF',cex.lab=2.2, cex.main=2.5,bty="n")
 ylab=expression(RF~(Wm^-2))
 polygon(x=c(1:12,12:1),y=c(force.month+1.96*uncertainty.force, rev(force.month-1.96*uncertainty.force)), border=NA,col='gray')
 #polygon(x=c(1:12,12:1),y=c(hiquant.yr, rev(loquant.yr)), border=NA,col='gray')
 #abline(v=c(3.75,5.6,8.25,10.2), lty=3)
 lines(force.month, lwd=5)
-axis(side=2, labels= seq(from=-1, to=2, by=0.5), at=seq(from=-1, to=2, by=0.5), cex.axis=1.5, font=2)
+axis(side=2, labels= seq(from=-1, to=2, by=1), at=seq(from=-1, to=2, by=1), cex.axis=1.5, font=2)
 box(lwd=3)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
@@ -158,7 +158,7 @@ mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
 abline(h=0,lty=2, lwd=3,col='red4')
 axis(side=1,labels=seq(from=1,to=12,by=2),at=seq(from=1,to=12,by=2),cex.axis=1.5, font=2)
 
-dev.copy(png, filename="Figures/SnowLST.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/SnowLST.png", width=450, height=300);dev.off()
 
 #Quantiles
 #quantile(forcing.px[,c(1:2,7)], c(0.1,0.9), na.rm=TRUE) #winter

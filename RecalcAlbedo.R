@@ -236,7 +236,7 @@ box(lwd=3)
 abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(AlbedoChange+1.96*uncertainty.alb,rev(AlbedoChange-1.96*uncertainty.alb)),border=NA, col='gray')
 lines(AlbedoChange, lwd=5)
-dev.copy(png, filename="Figures/AlbedoChange.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/AlbedoChange.png", width=450, height=300);dev.off()
 
 
 #Albedo RF plot
@@ -254,7 +254,7 @@ polygon(x=c(1:12,12:1),y=c(AlbForce.avg+1.96*uncertainty.force,rev(AlbForce.avg-
 #abline(v=c(3.75,5.6,8.25,10.2), lty=3)
 lines(AlbForce.avg, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
-dev.copy(png, filename="Figures/AlbedoForcing.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/AlbedoForcing.png", width=450, height=300);dev.off()
 
 #Seasonal excerpts
 wintermonths<-c(1:2, 12)

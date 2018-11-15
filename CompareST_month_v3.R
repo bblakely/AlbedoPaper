@@ -435,14 +435,14 @@ ylab<-expression(Delta~LST~(degree*C))
 plot(AvgDiffs,type='l',ylim=c(-1.1,1), main='LST Change', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-1, to=1.5, by=0.5), at=seq(from=-1, to=1.5, by=0.5), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-1, to=1.5, by=1), at=seq(from=-1, to=1.5, by=1), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
 box(lwd=3)
 polygon(x=c(1:12,12:1),y=c(AvgDiffs+1.96*uncertainty.lst,rev(AvgDiffs-1.96*uncertainty.lst)),border=NA, col='gray')
 lines(AvgDiffs, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
-dev.copy(png, filename="Figures/STChange.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/STChange.png", width=450, height=300);dev.off()
 
 
 #smoothRF<-TabRF
@@ -450,7 +450,7 @@ smoothRF<-colMeans(TableDiffs, na.rm=TRUE)*(-1) ###TableDiffs for Trenberth, for
 #Regional ST forcing
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2)) #was ylim -4, 6
-plot(smoothRF,type='l',ylim=c(-2.1,2.1), main='LST RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+plot(smoothRF,type='l',ylim=c(-1.5,1.5), main='LST RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=-5, to=5, by=1), at=seq(from=-5, to=5, by=1), cex.axis=1.5, font=2)
@@ -461,7 +461,7 @@ polygon(x=c(1:12,12:1),y=c(smoothRF+1.96*uncertainty.force,rev(smoothRF-1.96*unc
 lines(smoothRF, lwd=5) 
 abline(h=0, col='red4', lty=2, lwd=3)
 
-dev.copy(png, filename="Figures/STForcing.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/STForcing.png", width=450, height=300);dev.off()
 
 #####
 #write.csv(STNetForce,'WriteFile/ST_dayweight.csv')

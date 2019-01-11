@@ -143,13 +143,13 @@ uncertainty.force<-rowSums(var.scl.force, na.rm=TRUE)
 
 
 par(mar=c(5,5,4,2))
-plot(force.month, ylim=c(-1,1), type='l',lwd='3', xaxt='n',yaxt='n',xlab='',ylab='', main='Snow LST RF',cex.lab=2.2, cex.main=2.5,bty="n")
+plot(force.month, ylim=c(-1.1,1.1), type='l',lwd='3', xaxt='n',yaxt='n',xlab='',ylab='', main='Snow LST RF',cex.lab=2.2, cex.main=2.5,bty="n")
 ylab=expression(RF~(Wm^-2))
 polygon(x=c(1:12,12:1),y=c(force.month+1.96*uncertainty.force, rev(force.month-1.96*uncertainty.force)), border=NA,col='gray')
 #polygon(x=c(1:12,12:1),y=c(hiquant.yr, rev(loquant.yr)), border=NA,col='gray')
 #abline(v=c(3.75,5.6,8.25,10.2), lty=3)
 lines(force.month, lwd=5)
-axis(side=2, labels= seq(from=-1, to=2, by=0.5), at=seq(from=-1, to=2, by=0.5), cex.axis=1.5, font=2)
+axis(side=2, labels= seq(from=-1, to=2, by=1), at=seq(from=-1, to=2, by=1), cex.axis=1.5, font=2)
 box(lwd=3)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
@@ -158,7 +158,7 @@ mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
 abline(h=0,lty=2, lwd=3,col='red4')
 axis(side=1,labels=seq(from=1,to=12,by=2),at=seq(from=1,to=12,by=2),cex.axis=1.5, font=2)
 
-dev.copy(png, filename="Figures/SnowLST.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/SnowLST.png", width=450, height=300);dev.off()
 
 #Quantiles
 #quantile(forcing.px[,c(1:2,7)], c(0.1,0.9), na.rm=TRUE) #winter
@@ -183,3 +183,35 @@ print("st snow wnt interval");print(c(wnt.sno+wnt.sno.ci, wnt.sno-wnt.sno.ci))
 
 
 force.month->STSnowRF #Rename for combine force
+
+####Reporting numbers####
+if(reportnum==TRUE){
+#Prepare SWE
+dif.dat.sub<-dif.dat
+dif.dat.sub[(paleo.raw$B1[2:24535]==0),]<-NA
+snow.change.num<-colMeans(dif.dat.sub, na.rm=TRUE)
+
+#SWE changes
+mean(snow.change.num) #Average SWE change
+min(rowMeans(dif.dat.sub[,c(1:5,11:12)], na.rm=TRUE), na.rm=TRUE) #Large SWE changes in UP
+
+#LST change from SWE
+mean(colMeans(snow.shift.px[c(7,1:2)])) #LST change, winter
+mean(colMeans(snow.shift.px[c(3:5)])) #LST change, spring
+
+#Forcings
+mean(rowMeans(forcing.px[,SpringDays], na.rm=TRUE), na.rm=TRUE)
+spr.sno.ci<-sd(rowMeans(forcing.px[,SpringDays], na.rm=TRUE), na.rm=TRUE)*2
+print("st snow spr interval");print(c(spr.sno+spr.sno.ci, spr.sno-spr.sno.ci))
+
+mean(rowMeans(forcing.px[,WinterDays], na.rm=TRUE), na.rm=TRUE)
+wnt.sno.ci<-sd(rowMeans(forcing.px[,WinterDays], na.rm=TRUE), na.rm=TRUE)*2
+print("st snow wnt interval");print(c(wnt.sno+wnt.sno.ci, wnt.sno-wnt.sno.ci))
+
+mean(rowMeans(forcing.px, na.rm=TRUE), na.rm=TRUE) #Annual forcing
+ann.sno.ci<-sd(rowMeans(forcing.px, na.rm=TRUE), na.rm=TRUE)*2
+print("st snow ann interval");print(c(ann.sno+ann.sno.ci, ann.sno-ann.sno.ci))
+
+}
+
+#####

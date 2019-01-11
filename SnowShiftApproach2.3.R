@@ -5,8 +5,6 @@ ModAlbedo<-read.csv('Albedo_Modern_Snowanalysis.csv', skip=7)
 HistAlbedo<-read.csv('Albedo_Paleo_Snowanalysis.csv', skip=7)
 DatAlbedo<-read.csv('Modis_Snowanalysis.csv',skip=7)
 
-#par<-pardefault
-
 #Clip to area of interest
 Albedo<-HistAlbedo
 Albedo<-Albedo[Albedo$Lon<(-75),]
@@ -157,7 +155,7 @@ for (n in 1:nobs){
 }
 
 
-####Fill this out at some point to get large plots####
+####Older code used to find large-magnitude plots for supplement (typical shifts were too small to see graphically)####
 
 #shift.mag<-as.matrix(HistAlbs-AlbedoDAT) # All changes in albedo
 #shift.avg<-rowMeans(shift.mag[,start:end]) #Avg changes in albdeo (per pixel)
@@ -283,7 +281,7 @@ par(mar=c(5,5,4,2))
 plot(AvgRF,type='l',ylim=c(-2,9), main='Snow Albedo RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 ylab=expression(RF~(Wm^-2))
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-2, to=9, by=3), at=seq(from=-2, to=9, by=3), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-1, to=9, by=4), at=seq(from=-2, to=9, by=4), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
 box(lwd=3)
@@ -291,7 +289,7 @@ polygon(x=c(1:12,12:1),y=c(smtop,rev(smbottom)),border=NA, col='gray')
 lines(AvgRF, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
 
-dev.copy(png, filename="Figures/SnowAlbedo.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/SnowAlbedo.png", width=450, height=300);dev.off()
 
 
 #####
@@ -462,6 +460,28 @@ for(i in c(11:12, 1:5)){
   plot(rast.m-rast.e, useRaster=FALSE, col=paldiff(16), breaks=c(-115, seq(-70,70, length.out=15),115), main=month.name[i])
   
 }
+
+
+}
+
+#####
+
+####Reporting numbers####
+if(reportnum==TRUE){
+  
+  #Change in snowmelt date
+  mean(mseas-eseas)*8
+  
+  #Albedo snow forcings
+  
+  spr.sno<-mean(rowMeans(TableRF[,SpringDays])); print(spr.sno) #Spring snow forcing
+  spr.sno.ci<-sd(rowMeans(TableRF[,SpringDays]))*2
+  print("albedo snow spr interval");print(c(spr.sno+spr.sno.ci, spr.sno-spr.sno.ci))
+  
+  mean(rowMeans(TableRF))#Annual snow forcing
+  ann.sno.ci<-sd(rowMeans(TableRF))*2
+  print("albedo snow ann interval");print(c(ann.sno+ann.sno.ci, ann.sno-ann.sno.ci))
+
 }
 #####
 

@@ -6,7 +6,7 @@ source('CalcSolar.R')
 source('RadKernel_extract.R')
 
 #Cleanup unwanted bits from CalcSolar and VegConvert
-rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg", 'albkern')))
+rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg", 'albkern', 'reportnum')))
 
 Diagplot<-FALSE
 vegshift.sep<-FALSE #Do you want separate long- and shortwave forcings by veg shift
@@ -236,7 +236,7 @@ box(lwd=3)
 abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(AlbedoChange+1.96*uncertainty.alb,rev(AlbedoChange-1.96*uncertainty.alb)),border=NA, col='gray')
 lines(AlbedoChange, lwd=5)
-dev.copy(png, filename="Figures/AlbedoChange.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/AlbedoChange.png", width=450, height=300);dev.off()
 
 
 #Albedo RF plot
@@ -254,7 +254,7 @@ polygon(x=c(1:12,12:1),y=c(AlbForce.avg+1.96*uncertainty.force,rev(AlbForce.avg-
 #abline(v=c(3.75,5.6,8.25,10.2), lty=3)
 lines(AlbForce.avg, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
-dev.copy(png, filename="Figures/AlbedoForcing.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/AlbedoForcing.png", width=450, height=300);dev.off()
 
 #Seasonal excerpts
 wintermonths<-c(1:2, 12)
@@ -272,3 +272,29 @@ print("winter alb interval:");print(c(mean(AlbForce.avg[wintermonths])+Alb.force
 Alb.force.s.ci<-mean(uncertainty.force[summermonths])
 print("summer alb interval:");print(c(mean(AlbForce.avg[summermonths])+Alb.force.w.ci,mean(AlbForce.avg[summermonths])-Alb.force.w.ci))
 
+####Reporting numbers####
+if(reportnum==TRUE){
+  #Albedo change
+  mean(AlbedoChange)#% change albedo regionwide
+  mean(AlbedoChange[wintermonths]) #% change in winter
+  mean(AlbedoChange[springmonths]);mean(AlbedoChange[summermonths]);mean(AlbedoChange[fallmonths]) #% change in other seasons
+  
+  #Forcings
+  mean(AlbForce.avg) #Yearly forcing
+  Alb.force.ann.ci<-mean(uncertainty.force)
+  print("annual alb interval:");print(c(mean(AlbForce.avg)+Alb.force.ann.ci,mean(AlbForce.avg)-Alb.force.ann.ci))
+  
+  mean(AlbForce.avg[wintermonths]) #Winter forcing
+  Alb.force.w.ci<-mean(uncertainty.force[wintermonths])
+  print("winter alb interval:");print(c(mean(AlbForce.avg[wintermonths])+Alb.force.w.ci,mean(AlbForce.avg[wintermonths])-Alb.force.w.ci))
+  
+  mean(AlbForce.avg[summermonths]) #Summer forcing
+  Alb.force.s.ci<-mean(uncertainty.force[summermonths])
+  print("summer alb interval:");print(c(mean(AlbForce.avg[summermonths])+Alb.force.w.ci,mean(AlbForce.avg[summermonths])-Alb.force.w.ci))
+  
+  #Vegetation shift
+  mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
+  mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE)) #Yearly avg, compshift
+  
+}
+#####

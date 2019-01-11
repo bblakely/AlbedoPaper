@@ -435,14 +435,14 @@ ylab<-expression(Delta~LST~(degree*C))
 plot(AvgDiffs,type='l',ylim=c(-1.1,1), main='LST Change', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-1, to=1.5, by=0.5), at=seq(from=-1, to=1.5, by=0.5), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-1, to=1.5, by=1), at=seq(from=-1, to=1.5, by=1), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
 box(lwd=3)
 polygon(x=c(1:12,12:1),y=c(AvgDiffs+1.96*uncertainty.lst,rev(AvgDiffs-1.96*uncertainty.lst)),border=NA, col='gray')
 lines(AvgDiffs, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
-dev.copy(png, filename="Figures/STChange.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/STChange.png", width=450, height=300);dev.off()
 
 
 #smoothRF<-TabRF
@@ -450,7 +450,7 @@ smoothRF<-colMeans(TableDiffs, na.rm=TRUE)*(-1) ###TableDiffs for Trenberth, for
 #Regional ST forcing
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2)) #was ylim -4, 6
-plot(smoothRF,type='l',ylim=c(-2.1,2.1), main='LST RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+plot(smoothRF,type='l',ylim=c(-1.5,1.5), main='LST RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=-5, to=5, by=1), at=seq(from=-5, to=5, by=1), cex.axis=1.5, font=2)
@@ -461,7 +461,7 @@ polygon(x=c(1:12,12:1),y=c(smoothRF+1.96*uncertainty.force,rev(smoothRF-1.96*unc
 lines(smoothRF, lwd=5) 
 abline(h=0, col='red4', lty=2, lwd=3)
 
-dev.copy(png, filename="Figures/STForcing.png", width=600, height=400);dev.off()
+dev.copy(png, filename="Figures/STForcing.png", width=450, height=300);dev.off()
 
 #####
 #write.csv(STNetForce,'WriteFile/ST_dayweight.csv')
@@ -482,18 +482,53 @@ ST.force.s.ci<-mean(uncertainty.force[summermonths])
 print("summer st interval:");print(c(mean(smoothRF[summermonths])+ST.force.w.ci,mean(smoothRF[summermonths])-ST.force.w.ci))
 
 
-####ST vegtype Bars####
+#####Reporting Numbers####
+if(reportnum==TRUE){
+  #LST change
+  mean(AvgDiffs)# change in LST regionwide
+  mean(AvgDiffs[summermonths]);#change in summer
+  mean(AvgDiffs[wintermonths]) #change in winter
+  
+  #Forcings
+  mean(smoothRF) #Yearly forcing
+  ST.force.ann.ci<-mean(uncertainty.force)
+  print("annual st interval:");print(c(mean(smoothRF)+ST.force.ann.ci,mean(smoothRF)-ST.force.ann.ci))
+  
+  mean(smoothRF[wintermonths]) #Winter forcing
+  ST.force.w.ci<-mean(uncertainty.force[wintermonths])
+  print("winter st interval:");print(c(mean(smoothRF[wintermonths])+ST.force.w.ci,mean(smoothRF[wintermonths])-ST.force.w.ci))
+  
+  mean(smoothRF[summermonths]) #Summer forcing
+  ST.force.s.ci<-mean(uncertainty.force[summermonths])
+  print("summer st interval:");print(c(mean(smoothRF[summermonths])+ST.force.w.ci,mean(smoothRF[summermonths])-ST.force.w.ci))
+  
+  #Vegetation shift
+  
+  mean(STChg.comp.avg[c(6:8)]) #Deforest, summer
+  mean(STChg.comp.avg[c(1:2,12)])#Deforest, winter
+  mean(STChg.comp.avg) #Deforest, yearly
+  
+  mean(STChg.def.avg[c(6:8)])#Compshift, summer
+  mean(STChg.def.avg[c(1:2,12)])#Compshift, winter
+  mean(STChg.def.avg)#Compshift, yearly
+ 
+}
+#####
 
-par(mfrow=c(1,3), mar=c(2,5.1,4,0.3))
-gsmonths<-c(6:8)
 
-barplot(c(mean(STChg.def.avg), mean(STChg.comp.avg)), ylim=c(-lablim, lablim), main='Annual',col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, ylab=ylab, cex.lab=2, cex.main=1.5, font.axis=2)
-abline(h=0);arrows()
-legend(0.1,-0.5, legend=c('Deforest', 'Comp Shift'), fill=c('orange','forest green'), bty='n', cex=1.3, text.font=2)
-barplot(c(mean(STChg.def.avg[gsmonths]), mean(STChg.comp.avg[gsmonths])), ylim=c(-lablim, lablim), main='Summer', col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, cex.main=1.5, font.axis=2)
-abline(h=0)
-barplot(c(mean(STChg.def.avg[wintermonths]), mean(STChg.comp.avg[wintermonths])), ylim=c(-lablim, lablim), main='Winter', col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, cex.main=1.5, font.axis=2)
-abline(h=0)
-dev.copy(png, filename="Figures/STCompDef.png", width=585, height=300);dev.off()
-
-par(mfrow=c(1,1)) #Reset PAR
+# ####ST vegtype Bars####
+# 
+# par(mfrow=c(1,3), mar=c(2,5.1,4,0.3))
+# gsmonths<-c(6:8)
+# lablim=1.3
+# 
+# barplot(c(mean(STChg.def.avg), mean(STChg.comp.avg)), ylim=c(-lablim, lablim), main='Annual',col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, ylab=ylab, cex.lab=2, cex.main=1.5, font.axis=2)
+# abline(h=0);arrows()
+# legend(0.1,-0.5, legend=c('Deforest', 'Comp Shift'), fill=c('orange','forest green'), bty='n', cex=1.3, text.font=2)
+# barplot(c(mean(STChg.def.avg[gsmonths]), mean(STChg.comp.avg[gsmonths])), ylim=c(-lablim, lablim), main='Summer', col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, cex.main=1.5, font.axis=2)
+# abline(h=0)
+# barplot(c(mean(STChg.def.avg[wintermonths]), mean(STChg.comp.avg[wintermonths])), ylim=c(-lablim, lablim), main='Winter', col=c('orange', 'forest green'), cex.axis=1.5, cex.names=1.2, cex.main=1.5, font.axis=2)
+# abline(h=0)
+# dev.copy(png, filename="Figures/STCompDef.png", width=585, height=300);dev.off()
+# 
+# par(mfrow=c(1,1)) #Reset PAR

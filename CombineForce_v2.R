@@ -1,6 +1,6 @@
 
-reportnum<-FALSE #Set to true if you want to generate and read out the numeric values reported in paper; will report throughout run
-
+reportnum<-TRUE #Set to true if you want to generate and read out the numeric values reported in paper; will report throughout run
+plot.new()
 #Redo combine force with real data
 source('RecalcAlbedo.R')
 source('CompareST_month_v3.R')
@@ -92,13 +92,13 @@ lab.albsnow<-expression(Snow~alpha)
 labloc<-barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann))
 
 barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann), col=c("gray","forest green","light blue","dark blue"), 
-        font=2, ylim=c(-2.5,1), cex.axis=2,cex.names=2, ylab='',
+        font=2, ylim=c(-3.5,1), cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE)
 
-abline(h=seq(from=-2,to=0.8,by=0.5), lty=2,col='light gray')
+abline(h=seq(from=-3,to=0.8,by=0.5), lty=2,col='light gray')
 
 barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann), col=c("gray","forest green","light blue","dark blue"), 
-        font=2,ylim=c(-2.5,1),cex.axis=2,cex.names=2, ylab='',
+        font=2,ylim=c(-3.5,1),cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE, add=T)
 
 text(labloc,0.6,c(expression(alpha),"LST",expression(alpha),"LST"), font=2, cex=2.2)
@@ -106,7 +106,7 @@ abline(v=2.5, lwd=3, lty=3)
 text(labloc[2],-1,"VEG", cex=2.5, font=2)
 text(mean(c(labloc[3], labloc[4])),-1,"SNOW", cex=2.5, font=2)
 
-axis(side=4, labels=seq(from=-2, to=0.8, by=1), at=seq(from=-2, to=0.8, by=1), cex.axis=2.2, font=2)
+axis(side=4, labels=seq(from=-3, to=0.8, by=1), at=seq(from=-3, to=0.8, by=1), cex.axis=2.2, font=2)
 #mtext(side=2, text=ylab, line=2.5, cex=2.4, font=2)
 abline(h=0, lwd=3)
 box(lwd=3)
@@ -122,14 +122,14 @@ Tot.ann<-Tot.ann #Already made for little plot
 #Setting type to 'inset' makes a plot where the individual plot (above) can be used as an inset;
 #Otherwise it is sized to be a stand-alone plot
 type<-'inset'
-if(type=='inset'){ylim=c(-2.5,3)}else{ylim=c(-2,1)}
+if(type=='inset'){ylim=c(-4,3)}else{ylim=c(-2,1)}
 
 barplot(c(Tot.ann, veg.comb,sno.comb),col=c("black","gray","dark blue"),  
         main="Combined RF",names.arg=c("Combined","Vegetation","Snow"), font=2,
         ylim=ylim,cex.main=3, cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE)
 
-abline(h=seq(from=-1.5,to=3,by=0.5), lty=2,col='light gray')
+abline(h=seq(from=-4,to=3,by=0.5), lty=2,col='light gray')
 
 barplot(c(Tot.ann, veg.comb,sno.comb),col=c("black","gray","dark blue"), 
         main="Combined RF",names.arg=c("Combined","Vegetation","Snow"), font=2,
@@ -141,7 +141,7 @@ barplot(c(Tot.ann, veg.comb,sno.comb), density=c(0,20,50),col=c("black","forest 
         ylim=ylim,cex.main=3, cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE, add=TRUE)
 
-axis(side=2, labels=seq(from=-2, to=3, by=1), at=seq(from=-2, to=3, by=1), cex.axis=1.8, font=2)
+axis(side=2, labels=seq(from=-4, to=3, by=1), at=seq(from=-4, to=3, by=1), cex.axis=1.8, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2.5, font=2)
 abline(h=0, lwd=3)
 box(lwd=3)
@@ -178,7 +178,7 @@ if(writefile==TRUE){
 ### Vegetation forcing plots ###
 #### Combined RF Deforest/Compshift####
 l.max<-1
-l.min<-(-12)
+l.min<-(-15)
 span<-c(l.min, l.max)
 par(mfrow=c(1,1), mar=c(5,6,4,2))
 
@@ -193,7 +193,7 @@ mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(comp.force+1.96*comp.uncert,rev(comp.force-1.96*comp.uncert)),border=NA, col='darkseagreen1')
-lines(comp.force,  col='forest green', ylim=c(-12, 1), lwd=2)
+lines(comp.force,  col='forest green', lwd=2)
 box(lwd=3)
 dev.copy(png, filename="Figures/CombinedRFCompshift.png", width=410, height=350);dev.off()
 
@@ -258,13 +258,13 @@ dest<-order(key$MOD)
 
 for(i in dest){
   if(vegshift.sep==TRUE){
-  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-25,15), ylab='RF', lty=2,lwd=2, 
+  plot(colMeans(alb.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-30,15), ylab='RF', lty=2,lwd=2, 
        type='l', col='dark gray', font=2, cex.axis=1.5, axes=FALSE)
     #main=paste(key$PAL[i],"to",key$MOD[i])
     lines(colMeans(st.force[convert.code==key$Code[i],], na.rm=TRUE), lty=2, col='forest green', lwd=2)
   lines(colMeans(veg.force[convert.code==key$Code[i],], na.rm=TRUE), lwd=3)
   }else{
-    plot(colMeans(veg.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-25,15), ylab='RF',lwd=2, 
+    plot(colMeans(veg.force[convert.code==key$Code[i],],na.rm=TRUE), ylim=c(-30,15), ylab='RF',lwd=2, 
         type='l', font=2, cex.axis=1., cex.axis=1.5, axes=FALSE)
     if(key$MOD[i]=="EG"){axis(side=2, labels = c(0,-20), at=c(0,-20), font=2, cex.axis=2)}
     if(key$PAL[i]=="CR"){axis(side=1, labels=c(2,6,10), at=c(2,6,10), font=2, cex.axis=2)}
@@ -381,11 +381,11 @@ chglab<-c("Deforest","Shift DC", "Afforest", "Shift EG")
 #Sums
 
 if(vegshift.sep==TRUE){
-barplot(albs.stack, names.arg=chglab,ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-90,30))
+barplot(albs.stack, names.arg=chglab,ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-120,30))
 barplot(sts, names.arg=chglab,col='forest green', add=TRUE, font=2, font.lab=2)
 barplot(tots, names.arg=chglab,density=15, col='black',add=TRUE, font=2, font.lab=2)
 legend (2.8,-10, legend=c('Albdeo','LST','Combined'), fill=c('gray','forest green','black'), cex=0.67, text.font=2)
-}else{barplot(tots, names.arg=chglab, ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-90,30))}
+}else{barplot(tots, names.arg=chglab, ylab="Total RF (GW)", font=2, font.lab=2,ylim=c(-120,30))}
 abline(h=0, lwd=2, col='dark red', lty=2)
 
 dev.copy(png, filename="Figures/ComboVeg_Sum.png", width=400, height=300);dev.off()
@@ -463,3 +463,4 @@ if(reportnum==TRUE){
   mean(Total) #With snow offset
 }
 #####
+

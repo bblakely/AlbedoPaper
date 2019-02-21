@@ -5,14 +5,13 @@ library('sp')
 library('maptools')
 library('maps')
 
-pullkern<-function(filename, varname, strict=TRUE, plot=TRUE){
+pullkern<-function(filename, varname, strict=TRUE, plot=FALSE){
   
   cdf.file.cld<-filename
-  
   cdf.obj<-nc_open(cdf.file.cld)
   alb.cld.br<-brick(cdf.file.cld,varname=varname)
   
-  if (plot==TRUE){
+  if (plot=='TRUE'){
     #Plot worldwide kernels
     for(j in 1:12){
       plot(alb.cld.br[[j]], useRaster=FALSE, main=j)
@@ -70,8 +69,10 @@ pullkern<-function(filename, varname, strict=TRUE, plot=TRUE){
   return(kern)
 }
 
-albkern<-pullkern('CAM3_albedo_sw_kernel.nc', 'monkernel' )
-stkern<-pullkern('CAM3_surft_lw_kernel.nc', 'FLNTA_FLNT' )
+albkern<-pullkern("ECHAM6_CTRL_kernel.nc", 'A_srad0' )#Mauritsen kernels
+  #pullkern('CAM3_albedo_sw_kernel.nc', 'monkernel' )#Soden kernels
+stkern<-pullkern("ECHAM6_CTRL_kernel.nc", 'Ts_trad0' )#Mauritsen kernels
+  #pullkern('CAM3_surft_lw_kernel.nc', 'FLNTA_FLNT' )#Soden kernels
 
 #etkern<-pullkern('CAM3_wv_lw_kernel.nc', 'kernel_p' )
 

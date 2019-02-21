@@ -11,7 +11,7 @@ Paleo_night_raw<-read.csv('Paleo_night_v2.csv', skip=7)
 
 diag.plots<-FALSE #Do you want diagnostic plots?
 vegshift.sep<-FALSE #Do you want separate long- and shortwave forcings by veg shift
-
+usekern<-TRUE #Do you want to use radiative kernels (alternative is atmospheric window)
 
 #number of observations; to use whenever we want all the rows (pixels)
 nobs=nrow(Modern_day_raw)
@@ -124,7 +124,7 @@ mean(AvgDiffs[SummerDays])
 mean(AvgDiffs[WinterDays])
 
 #Plot of non-collapsed weighted temp changes
-if(Diagplot==TRUE){
+if(diag.plots==TRUE){
 plot(AvgDiffs, type='l',ylim=c(-.5,1.3), main='Day and Night ST')
 abline(h=0, lty=2)
 lines(NightDiffu, col='forest green')
@@ -143,8 +143,8 @@ MtempsDay<-ModD_Dat
 MtempsNight<-ModN_Dat
 
 ## Radkern calcualtions of flux ##
-forcing.k<-TableDiffs*stkern
-forcing.k.u<-colMeans(TableDiffs*stkern, na.rm=TRUE)
+forcing.k<-sweep(TableDiffs, 2, stkern, '*')
+forcing.k.u<-colMeans(forcing.k, na.rm=TRUE)
 forcing.k.plot<-approx(forcing.k.u, n=46)$y
 
 
@@ -289,7 +289,8 @@ rf.temp.month<-data.frame(cbind(rf.temp.jan,rf.temp.feb,rf.temp.mar,rf.temp.apr,
 
 ## Summary arrays ##
 
-TableForce<-rf.temp.month #Monthly full weighted fluxes
+if(usekern==TRUE){TableForce<-forcing.k}else{TableForce<-rf.temp.month}#Monthly full weighted fluxes
+
 TabRF<-colMeans(TableForce, na.rm=TRUE)
 
 TabPix<-rowMeans(TableForce, na.rm=TRUE) #Yearly averages for each pixel
@@ -446,7 +447,7 @@ dev.copy(png, filename="Figures/STChange.png", width=450, height=300);dev.off()
 
 
 #smoothRF<-TabRF
-smoothRF<-colMeans(TableDiffs, na.rm=TRUE)*(-1) ###TableDiffs for Trenberth, forcings.k for kermels; need to propegate kernel forcings throughout to get correct uncertainty
+smoothRF<-colMeans(TableForce, na.rm=TRUE) ###TableForce for Trenberth, forcings.k for kermels; need to propegate kernel forcings throughout to get correct uncertainty
 #Regional ST forcing
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2)) #was ylim -4, 6

@@ -8,6 +8,7 @@ lst.raw<-read.csv('LST.csv', skip=7)
 Georef<-lst.raw[2:nrow(lst.raw),5:6]
 
 Diagplot<-FALSE
+usekern<-TRUE
 
 #QC
 MOD<-(snow.mod.raw[2:24535,5:18])
@@ -51,7 +52,7 @@ lst.month<-data.frame(cbind(lst.jan,lst.feb,lst.mar,lst.apr,lst.may,lst.nov,lst.
 
 #Pixelized forcing
 #Calculate change in residual due to snow predicted by fits
-snow.shift.px<-data.frame(mapply('*',dif.dat[,c(1:5,11:12)],mean(slopes[c(1:4,6:7)]),SIMPLIFY=FALSE))
+snow.shift.px<-data.frame(mapply('*',dif.dat[,c(1:5,11:12)],mean(-slopes[c(1:4,6:7)]),SIMPLIFY=FALSE))
 #apply shift to LST
 #####
 #Conceptually, this is adding the additional residual due to snow to the other
@@ -106,6 +107,12 @@ L1.px<-(0.98*sb*lst.month^4)*(-22/390)
 L2.px<-(0.98*sb*newmonth.px^4)*(-22/390)
 
 forcing.px<-L1.px-L2.px
+
+if(usekern==TRUE){
+  source("RadKernel_extract.R")
+  forcing.px<-sweep(newmonth.px-lst.month, 2, stkern[c(1:5,11:12)], '*')
+  }
+
 
 zeros<-matrix(data=0, nrow=nrow(forcing.px), ncol=5)
 forcing.year<-cbind(forcing.px[,1:5],zeros,forcing.px[,6:7])

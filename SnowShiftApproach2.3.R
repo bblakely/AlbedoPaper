@@ -5,6 +5,10 @@ ModAlbedo<-read.csv('Albedo_Modern_Snowanalysis.csv', skip=7)
 HistAlbedo<-read.csv('Albedo_Paleo_Snowanalysis.csv', skip=7)
 DatAlbedo<-read.csv('Modis_Snowanalysis.csv',skip=7)
 
+
+usekern<-TRUE #Do you want to calculate forcing with radiative kernel?
+
+
 #Clip to area of interest
 Albedo<-HistAlbedo
 Albedo<-Albedo[Albedo$Lon<(-75),]
@@ -242,12 +246,22 @@ InsolPicks<-unname(Insol.avg)
 TransPicks<-mean(Trans.avg)
 #####
 #### Calculate RF ####
+
+#with insolation
 TabInsol<-matrix(nrow=nrow(AlbedoDAT),ncol=12, data=rep(InsolPicks, each=nrow(AlbedoDAT)))
 TableRF<-(AlbedoDiffs)*TabInsol*(TransPicks^2)
-TablePix<-rowMeans(TableRF)
-mean(TablePix)
-quantile(TablePix,c(0.1,0.9))
-AvgRF<-colMeans(TableRF)
+
+#with raditive kernel
+if(usekern==TRUE){
+  source('RadKernel_extract.R')
+  TableRF<-sweep(-AlbedoDiffs/0.01, 2, albkern,'*')
+}
+
+  TablePix<-rowMeans(TableRF)
+  mean(TablePix)
+  quantile(TablePix,c(0.1,0.9))
+  AvgRF<-colMeans(TableRF)
+  
 
 #Print RF for uncertainty
 #SnowAlbForce<-cbind(Georef_shift, TableRF)
@@ -278,10 +292,10 @@ smoothRF<-AvgRF
 #Better uncertainty
 
 par(mar=c(5,5,4,2))
-plot(AvgRF,type='l',ylim=c(-2,9), main='Snow Albedo RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+plot(AvgRF,type='l',ylim=c(-2,10), main='Snow Albedo RF', cex.main=2.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
 ylab=expression(RF~(Wm^-2))
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
-axis(side=2, labels=seq(from=-1, to=9, by=4), at=seq(from=-2, to=9, by=4), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-2, to=14, by=4), at=seq(from=-2, to=14, by=4), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=2.5, cex=2, font=2)
 box(lwd=3)

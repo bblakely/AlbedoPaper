@@ -5,12 +5,13 @@ source('CalcSolar.R')
 
 source('RadKernel_extract.R')
 
+reportnum<-FALSE
 #Cleanup unwanted bits from CalcSolar and VegConvert
 rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg", 'albkern', 'reportnum')))
 
 Diagplot<-FALSE
 vegshift.sep<-FALSE #Do you want separate long- and shortwave forcings by veg shift
-
+usekern<-TRUE
 
 #Read in raw data
 ModernAlbRaw<-read.csv('Albedo_Modern1.csv',skip=7)
@@ -59,8 +60,10 @@ if(Diagplot==TRUE){plot(colMeans(d.alb.month, na.rm=TRUE),type='l', ylim=c(0,0.1
 AlbedoChange<-(colMeans(d.alb.month, na.rm=TRUE))
 
 #With radiative kernel
-AlbedoForce_radkern<-(d.alb.month/0.01)*albkern
-AlbedoForce_radkern.u<-(AlbedoChange/0.01)*albkern
+AlbedoForce_radkern<-sweep(d.alb.month/0.01, 2, albkern, '*')
+AlbedoForce_radkern.u<-((AlbedoChange/0.01)*albkern)
+
+
 
 #Calculate forcing
 #Ceres_unpack and CalcSolar need to have been run at this point
@@ -106,7 +109,9 @@ abline(h=0, lty=2,lwd=2)
 legend(9,-3, legend=c('yearly','monthly', 'rad kernels'), col=c('black','blue', 'purple'), lwd=2, cex=0.5)
 }
 ##SUPER KEY SET THIS###
-AlbForce<-AlbForce.month
+if(usekern==TRUE){AlbForce<-AlbedoForce_radkern}else{AlbForce<-AlbForce.month}
+
+AlbForce.avg<-colMeans(AlbForce, na.rm=TRUE)
   #AlbedoForce_radkern for radiative kernels
   #AlbForce.month for Trenberth
   #Eventually should change this into a function but for now renaming so plots work
@@ -173,7 +178,7 @@ mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
 
 #Set flexible plot limit params
 l.max<-1
-l.min<-(-12)
+l.min<-(-14)
 span<-c(l.min, l.max)
 
 ##Actual plotting
@@ -189,7 +194,7 @@ mtext(side=1, text="Month", line=3, cex=2, font=2)
 mtext(side=2, text=ylab, line=3, cex=2.0, font=2)
 abline(h=0, col='red4', lty=2, lwd=3)
 polygon(x=c(1:12,12:1),y=c(AlbForce.avg.def+1.96*uncertainty.def.alb,rev(AlbForce.avg.def-1.96*uncertainty.def.alb)),border=NA, col='gray')
-lines(AlbForce.avg.def,  col='grey20', ylim=c(-12, 1), lwd=2)
+lines(AlbForce.avg.def,  col='grey20', ylim=c(-14, 1), lwd=2)
 box(lwd=3)
 dev.copy(png, filename="Figures/AlbedoDeforest.png", width=500, height=425);dev.off()
 }
@@ -242,7 +247,7 @@ dev.copy(png, filename="Figures/AlbedoChange.png", width=450, height=300);dev.of
 #Albedo RF plot
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2))
-plot(AlbForce.avg,type='l',ylim=c(-7,1), main='Albedo RF', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(AlbForce.avg,type='l',ylim=c(-10,2), main='Albedo RF', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=-14, to=2, by=2), at=seq(from=-14, to=2, by=2), cex.axis=1.5, font=2)

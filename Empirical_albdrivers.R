@@ -60,20 +60,21 @@ library(gridExtra)
 
 albexp<-expression(Delta~alpha);laiexp<-expression(Delta~"LAI")
 #MX to DC and EG to DC
-gdat.w<-data.frame(cbind(rowMeans(AlbChange.comp[,winter], na.rm=TRUE),rowMeans(LaiChange.comp[,winter], na.rm=TRUE))); colnames(gdat.w)<-c("walb",'wlai')
-p1e<-ggplot(gdat.w, aes(x=wlai,y=walb))+geom_point(size=0.04)+stat_smooth(method="lm", col='cyan', fill='cyan')+xlim(-2.5,2.8)+ylim(-0.06,0.075)+theme_bw()+ylab(albexp)+xlab(laiexp)+ggtitle("Empirical")+geom_hline(yintercept=0, linetype="dashed", size=0.2)
+
+gdat.w<-data.frame(cbind(rowMeans(AlbChange.comp[,winter], na.rm=TRUE),rowMeans(LaiChange.comp[,winter], na.rm=TRUE),rowMeans(LaiChange.comp[,summer], na.rm=TRUE))); colnames(gdat.w)<-c("walb",'wlai', 'slai')
+p1e<-ggplot(gdat.w, aes(x=wlai,y=walb, col=slai))+geom_point(size=2)+xlim(-2.5,2.8)+ylim(-0.06,0.075)+theme_bw()+ylab(albexp)+xlab(laiexp)+ggtitle("Winter")+geom_hline(yintercept=0, linetype="dashed", size=0.2)+scale_colour_gradient2(low='orange4', mid='antiquewhite', high="forest green", midpoint=0.5)
 
 gdat.s<-data.frame(cbind(rowMeans(AlbChange.comp[,summer], na.rm=TRUE),rowMeans(LaiChange.comp[,summer], na.rm=TRUE))); colnames(gdat.s)<-c("salb",'slai')
-p2e<-ggplot(gdat.s, aes(x=slai,y=salb))+geom_point(size=0.04)+stat_smooth(method="lm", col='seagreen', fill='seagreen')+xlim(-2.5,2.8)+ylim(-0.06,0.075)+theme_bw()+ylab(albexp)+xlab(laiexp)+ggtitle("Empirical")+geom_hline(yintercept=0, linetype="dashed", size=0.2)
+p2e<-ggplot(gdat.s, aes(x=slai,y=salb, col=slai))+geom_point(size=2)+xlim(-2.5,2.8)+ylim(-0.06,0.075)+theme_bw()+ylab(albexp)+xlab(laiexp)+ggtitle("Summer")+geom_hline(yintercept=0, linetype="dashed", size=0.2)+scale_colour_gradient2(low='orange4', mid='antiquewhite', high="forest green", midpoint=0.5)
 
 grid.arrange(p1e,p2e, nrow=2)
 
 #STRICT
 gdat.w<-data.frame(cbind(rowMeans(AlbChange.strict[,winter], na.rm=TRUE),rowMeans(LaiChange.strict[,winter], na.rm=TRUE))); colnames(gdat.w)<-c("walb",'wlai')
-p1es<-ggplot(gdat.w, aes(x=wlai,y=walb))+geom_point(size=0.04)+stat_smooth(method="lm", col='cyan', fill='cyan')+xlim(-2.5,2.8)+ylim(-0.06,0.075)+theme_bw()+ylab(albexp)+xlab(laiexp)+ggtitle("Empirical")+geom_hline(yintercept=0, linetype="dashed", size=0.2)
+p1es<-ggplot(gdat.w, aes(x=wlai,y=walb, col=wlai))+geom_point(size=0.04)+xlim(-2.5,2.8)+ylim(-0.06,0.075)+theme_bw()+ylab(albexp)+xlab(laiexp)+ggtitle("Empirical")+geom_hline(yintercept=0, linetype="dashed", size=0.2)
 
 gdat.s<-data.frame(cbind(rowMeans(AlbChange.strict[,summer], na.rm=TRUE),rowMeans(LaiChange.strict[,summer], na.rm=TRUE))); colnames(gdat.s)<-c("salb",'slai')
-p2es<-ggplot(gdat.s, aes(x=slai,y=salb))+geom_point(size=0.04)+stat_smooth(method="lm", col='seagreen', fill='seagreen')+xlim(-2.5,2.8)+ylim(-0.06,0.075)+theme_bw()+ylab(albexp)+xlab(laiexp)+ggtitle("Empirical")+geom_hline(yintercept=0, linetype="dashed", size=0.2)
+p2es<-ggplot(gdat.s, aes(x=slai,y=salb, col=slai))+geom_point(size=0.04)+xlim(-2.5,2.8)+ylim(-0.06,0.075)+theme_bw()+ylab(albexp)+xlab(laiexp)+ggtitle("Empirical")+geom_hline(yintercept=0, linetype="dashed", size=0.2)
 
 grid.arrange(p1es,p2es, nrow=2)
 

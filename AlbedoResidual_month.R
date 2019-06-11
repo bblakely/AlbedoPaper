@@ -1,5 +1,6 @@
 dat.raw<-read.csv('MODISalbedo.csv', skip=7)
-mod.raw<-read.csv('ModelAlbedo.csv', skip=7)
+mod.raw<-read.csv('F:/testcurve_mod_fixrange.csv',skip=7 )
+#('ModelAlbedo.csv', skip=7)
 
 
 dat<-dat.raw[2:24535,7:52]
@@ -45,10 +46,10 @@ dat.dec<-rowMeans(dat.dat[43:46])
 dat.month<-data.frame(cbind(dat.jan,dat.feb,dat.mar,dat.apr,dat.may,dat.jun,
                             dat.jul,dat.aug,dat.sep,dat.oct,dat.nov,dat.dec))
 
-dat.win<-rowMeans(dat.month[,c(1:2, 12)])
-dat.spr<-rowMeans(dat.month[,3:5])
-dat.sum<-rowMeans(dat.month[,6:8])
-dat.fal<-rowMeans(dat.month[,9:11])
+dat.win<-rowMeans(dat.month[,c(1:2, 12)], na.rm=TRUE)
+dat.spr<-rowMeans(dat.month[,3:5], na.rm=TRUE)
+dat.sum<-rowMeans(dat.month[,6:8], na.rm=TRUE)
+dat.fal<-rowMeans(dat.month[,9:11], na.rm=TRUE)
 
 dat.seas<-cbind(dat.win,dat.spr,dat.sum,dat.fal)
 
@@ -72,10 +73,10 @@ mod.dec<-rowMeans(mod.dat[43:46])
 mod.month<-data.frame(cbind(mod.jan,mod.feb,mod.mar,mod.apr,mod.may,mod.jun,
                             mod.jul,mod.aug,mod.sep,mod.oct,mod.nov,mod.dec))
 
-mod.win<-rowMeans(mod.month[,c(1:2, 12)])
-mod.spr<-rowMeans(mod.month[,3:5])
-mod.sum<-rowMeans(mod.month[,6:8])
-mod.fal<-rowMeans(mod.month[,9:11])
+mod.win<-rowMeans(mod.month[,c(1:2, 12)], na.rm=TRUE)
+mod.spr<-rowMeans(mod.month[,3:5], na.rm=TRUE)
+mod.sum<-rowMeans(mod.month[,6:8], na.rm=TRUE)
+mod.fal<-rowMeans(mod.month[,9:11], na.rm=TRUE)
 
 mod.seas<-cbind(mod.win,mod.spr,mod.sum,mod.fal)
 

@@ -1,4 +1,5 @@
-dst.mod.raw<-read.csv('STDay_Modeled.csv', skip=7)
+dst.mod.raw<-read.csv('Modern_day_(v2).csv', skip=7)
+#('STDay_Modeled.csv', skip=7)
 dst.dat.raw<-read.csv('STDay_MODIS.csv', skip=7)
 
 dst.dat<-dst.dat.raw[2:24535,7:52]

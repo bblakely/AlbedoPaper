@@ -3,19 +3,23 @@ source('VegConvert_UTM.R')
 source('Ceres_unpack.R')
 source('CalcSolar.R')
 
+#detach("package:MASS", unload=TRUE)
 source('RadKernel_extract.R')
+
 
 reportnum<-FALSE
 #Cleanup unwanted bits from CalcSolar and VegConvert
-rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg", 'albkern', 'reportnum')))
+rm(list=setdiff(ls(), c("Months", "Months.insol","list.ind", "poss", "convert.code", "transmit.avg", 'albkern', 'reportnum', 'new.mod','new.pal')))
 
 Diagplot<-FALSE
 vegshift.sep<-FALSE #Do you want separate long- and shortwave forcings by veg shift
 usekern<-TRUE
 
 #Read in raw data
-ModernAlbRaw<-read.csv('Albedo_Modern1.csv',skip=7)
-PaleoAlbRaw<-read.csv('Albedo_Paleo_v2.csv',skip=7) #older: 'Albedo_Paleo.csv; in 'older data'
+ModernAlbRaw<-read.csv('Samp100_mod.csv', skip=7)
+#('Albedo_Modern1.csv',skip=7)
+PaleoAlbRaw<-read.csv('Samp100_pal.csv',skip=7)
+#('Albedo_Paleo_v2.csv',skip=7) #older: 'Albedo_Paleo.csv; in 'older data'
 #new: 'Albedo_Paleo_v2.csv'
 
 
@@ -36,7 +40,7 @@ PaleoAlb[PaleoAlb==9999]<-NaN
 ModernAlb[ModernAlb==9999]<-NaN
 
 
-#Alternative: fuzzy datasets
+#Alternative: fuzzy datasets; must have run albedoresidual
 #ModernAlb<-new.mod
 #PaleoAlb<-new.pal
 
@@ -158,6 +162,7 @@ var.scl.alb<-sweep(var.set.alb,2,count.set,'*')
 
 #Label
 colnames(var.scl.force)<-poss
+colnames(var.scl.alb)<-poss
 
 #Sum across veg conversions
 uncertainty.force<-rowSums(var.scl.force, na.rm=TRUE)
@@ -179,14 +184,17 @@ Comp<-c(-1,3,4) #This one is E to MX, E to DC, or MX to DC
 AlbForce.def<-AlbForce.veg[which(AlbForce.veg[,13]%in%Deforest.2),]
 AlbForce.avg.def<-colMeans(AlbForce.def[,1:12], na.rm=TRUE)
 var.scl.def<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Deforest)]
+var.scl.c.def<-var.scl.alb[,which(as.numeric(colnames(var.scl.alb))%in%Deforest)]
+
 uncertainty.def.alb<-rowSums(var.scl.def,na.rm=TRUE)
+uncertainty.def.c.alb<-rowSums(var.scl.c.def,na.rm=TRUE)
 
 AlbChange.def<-AlbChange.veg[which(AlbForce.veg[,13]%in%Deforest),]
 mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
 
 #Set flexible plot limit params
 l.max<-1
-l.min<-(-14)
+l.min<-(-10)
 span<-c(l.min, l.max)
 
 ##Actual plotting
@@ -210,7 +218,13 @@ dev.copy(png, filename="Figures/AlbedoDeforest.png", width=500, height=425);dev.
 AlbForce.comp<-AlbForce.veg[which(AlbForce.veg[,13]%in%Comp),]
 AlbForce.avg.comp<-colMeans(AlbForce.comp[,1:12], na.rm=TRUE)
 var.scl.comp<-var.scl.force[,which(as.numeric(colnames(var.scl.force))%in%Comp)]
+var.scl.c.comp<-var.scl.alb[,which(as.numeric(colnames(var.scl.alb))%in%Comp)]
+
 uncertainty.comp.alb<-rowSums(var.scl.comp)
+uncertainty.comp.c.alb<-rowSums(var.scl.c.comp,na.rm=TRUE)
+
+
+
 
 AlbChange.comp<-AlbChange.veg[which(AlbForce.veg[,13]%in%Comp),]
 mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE)) #Yearly avg, deforested
@@ -240,7 +254,7 @@ par(xpd=FALSE)
 
 par(mar=c(5,5,4,2))
 ylab<-expression(Delta~alpha~("%"))
-plot(AlbedoChange,type='l',ylim=c(-0.02,0.15), main='Albedo Change', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(AlbedoChange,type='l',ylim=c(-0.02,0.11), main='Albedo Change', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=-2, to=16, by=4), at=seq(-0.02, to=0.16, by=0.04), cex.axis=1.5, font=2)
 mtext(side=1, text="Month", line=3, cex=2, font=2)
@@ -251,11 +265,30 @@ polygon(x=c(1:12,12:1),y=c(AlbedoChange+1.96*uncertainty.alb,rev(AlbedoChange-1.
 lines(AlbedoChange, lwd=5)
 dev.copy(png, filename="Figures/AlbedoChange.png", width=450, height=300);dev.off()
 
+#As a big-ass tiff:
+
+par(xpd=FALSE)
+
+upscale<-8
+par(mar=c(8,9,7,5))
+ylab<-expression(Delta~alpha~("%"))
+plot(AlbedoChange,type='l',ylim=c(-0.02,0.11), main='Albedo Change', cex.main=4.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=3, tick=FALSE, line=0.5, font=2)
+axis(side=2, labels=seq(from=-2, to=16, by=4), at=seq(-0.02, to=0.16, by=0.04), cex.axis=3, font=2)
+mtext(side=1, text="Month", line=5, cex=3.5, font=2)
+mtext(side=2, text=ylab, line=4.5, cex=3.5, font=2)
+box(lwd=5)
+abline(h=0, col='red4', lty=2, lwd=5)
+polygon(x=c(1:12,12:1),y=c(AlbedoChange+1.96*uncertainty.alb,rev(AlbedoChange-1.96*uncertainty.alb)),border=NA, col='gray')
+lines(AlbedoChange, lwd=8)
+dev.copy(tiff, filename="Figures/AlbedoChange.tif", width=450*upscale, height=300*upscale, res=300);dev.off()
+
+
 
 #Albedo RF plot
 par(mar=c(5,5,4,2))
 ylab<-expression(RF~(Wm^-2))
-plot(AlbForce.avg,type='l',ylim=c(-10,2), main='Albedo RF', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(AlbForce.avg,type='l',ylim=c(-9,1), main='Albedo RF', cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=1.5, font=2)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=-14, to=2, by=2), at=seq(from=-14, to=2, by=2), cex.axis=1.5, font=2)
@@ -268,6 +301,24 @@ polygon(x=c(1:12,12:1),y=c(AlbForce.avg+1.96*uncertainty.force,rev(AlbForce.avg-
 lines(AlbForce.avg, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
 dev.copy(png, filename="Figures/AlbedoForcing.png", width=450, height=300);dev.off()
+
+#As a big-ass tiff:
+par(mar=c(8,9,7,5))
+ylab<-expression(RF~(Wm^-2))
+plot(AlbForce.avg,type='l',ylim=c(-9,1), main='Albedo RF', cex.main=4.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=3, font=2, line=0.5, tick=FALSE)
+#axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-14, to=2, by=2), at=seq(from=-14, to=2, by=2), cex.axis=3, font=2)
+mtext(side=1, text="Month", line=5, cex=3.5, font=2)
+mtext(side=2, text=ylab, line=4.5, cex=3.5, font=2)
+box(lwd=5)
+polygon(x=c(1:12,12:1),y=c(AlbForce.avg+1.96*uncertainty.force,rev(AlbForce.avg-1.96*uncertainty.force)),border=NA, col='gray')
+#polygon(x=c(1:12,12:1),y=c(top,rev(bottom)),border=NA, col='gray')
+#abline(v=c(3.75,5.6,8.25,10.2), lty=3)
+lines(AlbForce.avg, lwd=8)
+abline(h=0, col='red4', lty=2, lwd=5)
+dev.copy(tiff, filename="Figures/AlbedoForcing.tif", width=450*upscale, height=300*upscale, res=300);dev.off()
+
 
 #Seasonal excerpts
 wintermonths<-c(1:2, 12)
@@ -283,10 +334,23 @@ Alb.force.w.ci<-mean(uncertainty.force[wintermonths])
 print("winter alb interval:");print(c(mean(AlbForce.avg[wintermonths])+Alb.force.w.ci,mean(AlbForce.avg[wintermonths])-Alb.force.w.ci))
 
 Alb.force.s.ci<-mean(uncertainty.force[summermonths])
-print("summer alb interval:");print(c(mean(AlbForce.avg[summermonths])+Alb.force.w.ci,mean(AlbForce.avg[summermonths])-Alb.force.w.ci))
+print("summer alb interval:");print(c(mean(AlbForce.avg[summermonths])+Alb.force.s.ci,mean(AlbForce.avg[summermonths])-Alb.force.s.ci))
+
+Alb.change.ann.ci<-mean(uncertainty.alb)
+print("annual alb chg:"); print(c(mean(AlbedoChange)+Alb.change.ann.ci,mean(AlbedoChange)-Alb.change.ann.ci))
+
+Alb.change.w.ci<-mean(uncertainty.alb[wintermonths])
+print("winter alb interval:");print(c(mean(AlbedoChange[wintermonths])+Alb.change.w.ci,mean(AlbedoChange[wintermonths])-Alb.change.w.ci))
+Alb.change.s.ci<-mean(uncertainty.alb[summermonths])
+print("summer alb interval:");print(c(mean(AlbedoChange[summermonths])+Alb.change.s.ci,mean(AlbedoChange[summermonths])-Alb.change.s.ci))
+Alb.change.sp.ci<-mean(uncertainty.alb[springmonths])
+print("spring alb interval:");print(c(mean(AlbedoChange[springmonths])+Alb.change.sp.ci,mean(AlbedoChange[springmonths])-Alb.change.sp.ci))
+Alb.change.f.ci<-mean(uncertainty.alb[fallmonths])
+print("fall alb interval:");print(c(mean(AlbedoChange[fallmonths])+Alb.change.f.ci,mean(AlbedoChange[fallmonths])-Alb.change.f.ci))
+
 
 ####Reporting numbers####
-if(reportnum==TRUE){
+if(reportnum==TRUE){C
   #Albedo change
   mean(AlbedoChange)#% change albedo regionwide
   mean(AlbedoChange[wintermonths]) #% change in winter
@@ -303,11 +367,18 @@ if(reportnum==TRUE){
   
   mean(AlbForce.avg[summermonths]) #Summer forcing
   Alb.force.s.ci<-mean(uncertainty.force[summermonths])
-  print("summer alb interval:");print(c(mean(AlbForce.avg[summermonths])+Alb.force.w.ci,mean(AlbForce.avg[summermonths])-Alb.force.w.ci))
+  print("summer alb interval:");print(c(mean(AlbForce.avg[summermonths])+Alb.force.s.ci,mean(AlbForce.avg[summermonths])-Alb.force.s.ci))
   
   #Vegetation shift
   mean(colMeans(AlbChange.def[1:12], na.rm=TRUE)) #Yearly avg, deforested
+  Alb.force.d.ci<-1.96*mean(uncertainty.def.c.alb)
+  print("deforestation alb interval"); print(c(mean(colMeans(AlbChange.def[1:12], na.rm=TRUE))+Alb.force.d.ci,mean(colMeans(AlbChange.def[1:12], na.rm=TRUE))-Alb.force.d.ci))
+  
   mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE)) #Yearly avg, compshift
+  Alb.force.c.ci<-1.96*mean(uncertainty.comp.c.alb)
+  print("comp alb interval"); print(c(mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE))+Alb.force.c.ci,mean(colMeans(AlbChange.comp[1:12], na.rm=TRUE))-Alb.force.c.ci))
+  
+
   
 }
 #####

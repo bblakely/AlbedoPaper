@@ -305,6 +305,22 @@ abline(h=0, col='red4', lty=2, lwd=3)
 
 dev.copy(png, filename="Figures/SnowAlbedo.png", width=450, height=300);dev.off()
 
+#TIFFTIME
+
+par(mar=c(8,9,6,2))
+plot(AvgRF,type='l',ylim=c(-2,10), main='Snow Albedo RF', cex.main=4.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+ylab=expression(RF~(Wm^-2))
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=3, font=2, line=0.5, tick=FALSE)
+axis(side=2, labels=seq(from=-2, to=14, by=4), at=seq(from=-2, to=14, by=4), cex.axis=3, font=2)
+mtext(side=1, text="Month", line=5, cex=3.5, font=2)
+mtext(side=2, text=ylab, line=4.5, cex=3.5, font=2)
+box(lwd=5)
+polygon(x=c(1:12,12:1),y=c(smtop,rev(smbottom)),border=NA, col='gray')
+lines(AvgRF, lwd=8)
+abline(h=0, col='red4', lty=2, lwd=5)
+
+dev.copy(tiff, filename="Figures/SnowAlbedo.tif", width=450*8, height=300*8, res=300);dev.off()
+
 
 #####
 

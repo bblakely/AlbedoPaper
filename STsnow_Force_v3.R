@@ -167,6 +167,29 @@ axis(side=1,labels=seq(from=1,to=12,by=2),at=seq(from=1,to=12,by=2),cex.axis=1.5
 
 dev.copy(png, filename="Figures/SnowLST.png", width=450, height=300);dev.off()
 
+#TIFFTIME
+par(mar=c(8,9,6,2))
+plot(force.month, ylim=c(-1.1,1.1), type='l',lwd='3', xaxt='n',yaxt='n',xlab='',ylab='', main='Snow LST RF',cex.lab=2.2, cex.main=4.5,bty="n")
+ylab=expression(RF~(Wm^-2))
+polygon(x=c(1:12,12:1),y=c(force.month+1.96*uncertainty.force, rev(force.month-1.96*uncertainty.force)), border=NA,col='gray')
+#polygon(x=c(1:12,12:1),y=c(hiquant.yr, rev(loquant.yr)), border=NA,col='gray')
+#abline(v=c(3.75,5.6,8.25,10.2), lty=3)
+lines(force.month, lwd=8)
+axis(side=2, labels= seq(from=-1, to=2, by=1), at=seq(from=-1, to=2, by=1), cex.axis=3, font=2)
+box(lwd=5)
+mtext(side=1, text="Month", line=5, cex=3.5, font=2)
+mtext(side=2, text=ylab, line=4.5, cex=3.5, font=2)
+#lines(loquantrf, lty=4,col='red',lwd='2')
+#lines(hiquantrf, lty=4,col='forest green',lwd='2')
+abline(h=0,lty=2, lwd=5,col='red4')
+axis(side=1,labels=seq(from=1,to=12,by=2),at=seq(from=1,to=12,by=2),cex.axis=3, font=2, line=0.5, tick=FALSE)
+
+dev.copy(tiff, filename="Figures/SnowLST.tif", width=450*8, height=300*8, res=300);dev.off()
+
+
+
+
+
 #Quantiles
 #quantile(forcing.px[,c(1:2,7)], c(0.1,0.9), na.rm=TRUE) #winter
 #quantile(forcing.px[,c(3:5)], c(0.1,0.9), na.rm=TRUE) #spring

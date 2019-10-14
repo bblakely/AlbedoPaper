@@ -218,7 +218,7 @@ for (i in c(1:7)){
   
   line<-lm(rs.month[,i]~swe.month[,i])
   params<-unname(line[[1]])
-  
+  print(summary(line))
   #print(params[2])
   slopes[i]<-params[2]
   ints[i]<-params[1]

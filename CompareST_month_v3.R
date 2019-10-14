@@ -407,7 +407,6 @@ box(lwd=3)
 dev.copy(png, filename="Figures/STDeforest.png", width=500, height=425);dev.off()
 
 
-# lines(STForce.nosnow.avg, lwd=2)
 
 ## Composition Shift ##
 ylab<-expression(RF~(Wm^-2))
@@ -445,6 +444,21 @@ lines(AvgDiffs, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
 dev.copy(png, filename="Figures/STChange.png", width=450, height=300);dev.off()
 
+#Big-ass tiff version
+par(mar=c(8,9,7,5))
+ylab<-expression(Delta~LST~(degree*C))
+plot(AvgDiffs,type='l',ylim=c(-1.1,1), main='LST Change', cex.main=4.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=3, font=2, line=0.5, tick=FALSE)
+#axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-1, to=1.5, by=1), at=seq(from=-1, to=1.5, by=1), cex.axis=3, font=2)
+mtext(side=1, text="Month", line=5, cex=3.5, font=2)
+mtext(side=2, text=ylab, line=4.5, cex=3.5, font=2)
+box(lwd=5)
+polygon(x=c(1:12,12:1),y=c(AvgDiffs+1.96*uncertainty.lst,rev(AvgDiffs-1.96*uncertainty.lst)),border=NA, col='gray')
+lines(AvgDiffs, lwd=8)
+abline(h=0, col='red4', lty=2, lwd=5)
+dev.copy(tiff, filename="Figures/STChange.tif", width=450*8, height=300*8, res=300);dev.off()
+
 
 #smoothRF<-TabRF
 smoothRF<-colMeans(TableForce, na.rm=TRUE) ###TableForce for Trenberth, forcings.k for kermels; need to propegate kernel forcings throughout to get correct uncertainty
@@ -463,6 +477,26 @@ lines(smoothRF, lwd=5)
 abline(h=0, col='red4', lty=2, lwd=3)
 
 dev.copy(png, filename="Figures/STForcing.png", width=450, height=300);dev.off()
+
+#Big-ass tiff
+smoothRF<-colMeans(TableForce, na.rm=TRUE) ###TableForce for Trenberth, forcings.k for kermels; need to propegate kernel forcings throughout to get correct uncertainty
+#Regional ST forcing
+par(mar=c(8,9,7,5))
+ylab<-expression(RF~(Wm^-2)) #was ylim -4, 6
+plot(smoothRF,type='l',ylim=c(-1.5,1.5), main='LST RF', cex.main=4.5,ylab='', xlab='', cex.lab=2.2,yaxt='n',xaxt='n',bty='n')
+axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=3, font=2, line=0.5, tick=FALSE)
+#axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
+axis(side=2, labels=seq(from=-5, to=5, by=1), at=seq(from=-5, to=5, by=1), cex.axis=3, font=2)
+mtext(side=1, text="Month", line=5, cex=3.5, font=2)
+mtext(side=2, text=ylab, line=4.5, cex=3.5, font=2)
+box(lwd=5)
+polygon(x=c(1:12,12:1),y=c(smoothRF+1.96*uncertainty.force,rev(smoothRF-1.96*uncertainty.force)),border=NA, col='gray')
+lines(smoothRF, lwd=8) 
+abline(h=0, col='red4', lty=2, lwd=5)
+
+dev.copy(tiff, filename="Figures/STForcing.tif", width=450*8, height=300*8, res=300);dev.off()
+
+
 
 #####
 #write.csv(STNetForce,'WriteFile/ST_dayweight.csv')
@@ -490,6 +524,20 @@ if(reportnum==TRUE){
   mean(AvgDiffs[summermonths]);#change in summer
   mean(AvgDiffs[wintermonths]) #change in winter
   
+  mean(AvgDiffs)
+  ST.change.ann.ci<-mean(uncertainty.lst)
+  print("annual st interval:");print(c(mean(AvgDiffs)+ST.change.ann.ci,mean(AvgDiffs)-ST.change.ann.ci))
+  
+  mean(AvgDiffs[wintermonths]) #Winter forcing
+  ST.change.w.ci<-mean(uncertainty.lst[wintermonths])
+  print("winter st interval:");print(c(mean(AvgDiffs[wintermonths])+ST.change.w.ci,mean(AvgDiffs[wintermonths])-ST.change.w.ci))
+  
+  mean(AvgDiffs[summermonths]) #Summer forcing
+  ST.change.s.ci<-mean(uncertainty.lst[summermonths])
+  print("summer st interval:");print(c(mean(AvgDiffs[summermonths])+ST.change.s.ci,mean(AvgDiffs[summermonths])-ST.change.s.ci))
+  
+
+  
   #Forcings
   mean(smoothRF) #Yearly forcing
   ST.force.ann.ci<-mean(uncertainty.force)
@@ -501,17 +549,35 @@ if(reportnum==TRUE){
   
   mean(smoothRF[summermonths]) #Summer forcing
   ST.force.s.ci<-mean(uncertainty.force[summermonths])
-  print("summer st interval:");print(c(mean(smoothRF[summermonths])+ST.force.w.ci,mean(smoothRF[summermonths])-ST.force.w.ci))
+  print("summer st interval:");print(c(mean(smoothRF[summermonths])+ST.force.s.ci,mean(smoothRF[summermonths])-ST.force.s.ci))
   
   #Vegetation shift
   
-  mean(STChg.comp.avg[c(6:8)]) #Deforest, summer
-  mean(STChg.comp.avg[c(1:2,12)])#Deforest, winter
-  mean(STChg.comp.avg) #Deforest, yearly
+  mean(STChg.comp.avg[c(6:8)]) #Compshift, summer
+  print("summer comp interval:");print(c(mean(STChg.comp.avg[summermonths])+1.96*mean(uncertainty.comp.st[summermonths]),mean(STChg.comp.avg[summermonths])-1.96*mean(uncertainty.comp.st[summermonths])))
   
-  mean(STChg.def.avg[c(6:8)])#Compshift, summer
-  mean(STChg.def.avg[c(1:2,12)])#Compshift, winter
-  mean(STChg.def.avg)#Compshift, yearly
+  mean(STChg.comp.avg[c(1:2,12)])#Compshift, winter
+  print("winter comp interval:");print(c(mean(STChg.comp.avg[wintermonths])+1.96*mean(uncertainty.comp.st[wintermonths]),mean(STChg.comp.avg[wintermonths])-1.96*mean(uncertainty.comp.st[wintermonths])))
+  
+  mean(STChg.comp.avg) #Compshift, yearly
+  print("Annual comp interval:");print(c(mean(STChg.comp.avg)+1.96*mean(uncertainty.comp.st),mean(STChg.comp.avg)-1.96*mean(uncertainty.comp.st)))
+  
+  
+  mean(STChg.def.avg[c(6:8)])#Deforest, summer
+  print("summer def interval:");print(c(mean(STChg.def.avg[summermonths])+1.96*mean(uncertainty.def.st[summermonths]),mean(STChg.def.avg[summermonths])-1.96*mean(uncertainty.def.st[summermonths])))
+  
+  mean(STChg.def.avg[c(1:2,12)])#Deforest, winter
+  print("winter def interval:");print(c(mean(STChg.def.avg[wintermonths])+1.96*mean(uncertainty.def.st[wintermonths]),mean(STChg.def.avg[wintermonths])-1.96*mean(uncertainty.def.st[wintermonths])))
+  
+  mean(STChg.def.avg)#Deforest, yearly
+  print("Annual def interval:");print(c(mean(STChg.def.avg)+1.96*mean(uncertainty.def.st),mean(STChg.def.avg)-1.96*mean(uncertainty.def.st)))
+  
+  
+  uncertainty.def.st
+  uncertainty.comp.st
+  
+
+
  
 }
 #####

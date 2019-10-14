@@ -1,9 +1,9 @@
 dat.raw<-read.csv('MODISalbedo.csv', skip=7)
-mod.raw<-read.csv('F:/Samp100.csv',skip=7 )
+mod.raw<-read.csv('Samp100_mod.csv',skip=7 )
 #('F:/Samp100.csv',skip=7 )
 #('Albedo_Modern1.csv',skip=7)
 #('ModelAlbedo.csv', skip=7)
-palveg.filter<-read.csv("Paleo_vegetation_UTM_v2.csv", skip=7)
+palveg.filter<-read.csv("Paleo_vegetation_UTM_v2.csv", skip=7);palveg.filter<-palveg.filter[2:nrow(palveg.filter),]
 
 dat<-dat.raw[2:24535,7:52]
 mod<-mod.raw[2:24535,7:52]
@@ -116,18 +116,18 @@ par(mfrow=c(2,2))
 #par(mar=c(3,3,2,0))
 par(mar=c(4,4,3,2))
 for (i in 1:4){
-  #smoothScatter(y=dat.seas[,i], x=mod.seas[,i], main=seaslab[i], ylim=c(0,0.7), xlim=c(0,0.7),
-                #colramp=colorRampPalette(c('white','forest green', 'black')),
-                #font=2, font.lab=2, ylab='', xlab='')
-  thin<-sample(1:nrow(dat.seas), 4907)
   smoothScatter(y=dat.seas[,i], x=mod.seas[,i], main=seaslab[i], ylim=c(0,0.7), xlim=c(0,0.7),
-  colramp=colorRampPalette(c('white', 'black')),nrpoints=0,
-  font=2, font.lab=2, ylab='', xlab='')
+                colramp=colorRampPalette(c('white','forest green', 'black')),
+                font=2, font.lab=2,  ylab='MODIS', xlab='Lowess')
+  thin<-sample(1:nrow(dat.seas), 8000)
+  #smoothScatter(y=dat.seas[,i], x=mod.seas[,i], main=seaslab[i], ylim=c(0,0.7), xlim=c(0,0.7),
+  #colramp=colorRampPalette(c('white', 'black')),nrpoints=0,
+  #font=2, font.lab=2, ylab='', xlab='')
   colvec.s<-colvec
   colvec.s[colvec=='dark blue']<-'blue'
   colvec.s[colvec=='purple4']<-'purple'
   colvec.s[colvec=='dark red']<-'red'
-  points(y=dat.seas[thin,i], x=mod.seas[thin,i],col=colvec.s[thin], pch='.', cex=1.5)
+  #points(y=dat.seas[thin,i], x=mod.seas[thin,i],col=colvec.s[thin], pch='.', cex=1.5)
   # ylab='MODIS', xlab='Lowess',
   abline(0,1, col='black')
   box(lwd=2)
@@ -136,19 +136,32 @@ for (i in 1:4){
 for (i in 1:4){
 
   plot(y=dat.seas[,i], x=mod.seas[,i], main=seaslab[i], ylim=c(0,0.7), xlim=c(0,0.7),
-       ylab='', xlab='',col=colvec, font=2, font.lab=2, pch='.')
-  #ylab='MODIS', xlab='Lowess',
+       col=colvec, font=2, font.lab=2, pch='.',ylab='MODIS', xlab='Lowess')
+  #ylab='', xlab=''
   abline(0,1, col='black')
   box(lwd=2)
+  
+  
 }
+
+
+plot(seq(from=0, to=1,by=0.1), col='white', bty='n', xaxt='n',yaxt='n', xlab='',ylab='')
+legend(1,1,legend=c("Evergreen","Mixed","Deciduous","Mosaic","Crop","Urban"), fill=c('purple4','dark blue','forest green','orange','yellow','dark red'), text.font = 2)
 
 
 
 #Where are residuals?
-# diffs<-dat-mod
-# diffs.seas<-dat.seas - mod.seas
-#
-# geo<-dat.raw[2:24535,5:6]
+diffs<-dat-mod
+diffs.seas<-dat.seas - mod.seas
+geo<-dat.raw[2:24535,5:6]
+
+summary(lm(dat.seas[,1]~mod.seas[,1]))
+summary(lm(dat.seas[,2]~mod.seas[,2]))
+summary(lm(dat.seas[,3]~mod.seas[,3]))
+summary(lm(dat.seas[,4]~mod.seas[,4]))
+
+summary(lm(rowMeans(dat.seas)~rowMeans(mod.seas)))
+
 # feb.diffs<-cbind(geo,diffs[,5])
 # feb.diffs.lg<-febdiffs[(feb.diffs[,3]>0.15 | feb.diffs[,3]<(-0.15)),]
 # feb.diffs.lg<-feb.diffs.lg[!is.na(feb.diffs.lg[,3]),]
@@ -156,111 +169,111 @@ for (i in 1:4){
 # write.csv(feb.diffs.lg,'FebDiverge.csv')
 
 
-# ##Original Ends here; this version adds normal noise to bring model variation closer to data variation
-#
-library(MASS)
-
-new.mod<-mod
-adjstore<-matrix(0,14,46)
-par(mfrow=c(2,2))
-
-#Loop for adding noise
-for(i in 1:46){ #Big loop for adding noise
-  for(v in (unique(vegtype)[!is.na(unique(vegtype))])){
-
-    if(v!=26){
-
-    dat.l<-dat[which(vegtype==v), i]
-    mod.l<-mod[which(vegtype==v),i]
-
-    lim<-c(min(dat.l, na.rm=TRUE), max(dat.l, na.rm=TRUE))
-
-    hist(dat.l, xlim=lim)
-    hist(mod.l, xlim=lim)
-
-    modfit<-fitdistr(mod.l[!is.na(mod.l)], 'normal')$estimate
-    datfit<-fitdistr(dat.l[!is.na(dat.l)], 'normal')$estimate
-
-    adj<-datfit[2]-modfit[2]
-    if(unname(adj)>0){
-    adjstore[v,i]<-adj
-
-    modc<-mod.l+rnorm(length(mod.l),0, adj)
-  }else(modc<-mod.l)
-    hist(dat.l, xlim=lim)
-    hist(modc, xlim=lim)
-
-    new.mod[which(vegtype==v), i]<-modc
-    }
-
-  }
-}
-
-##Monthify new modern:####
-
-new.mod.dat<-new.mod
-
-new.mod.jan<-rowMeans(new.mod.dat[1:4])
-new.mod.feb<-rowMeans(new.mod.dat[5:8])
-new.mod.mar<-rowMeans(new.mod.dat[9:12])
-new.mod.apr<-rowMeans(new.mod.dat[13:15])
-new.mod.may<-rowMeans(new.mod.dat[16:19])
-new.mod.jun<-rowMeans(new.mod.dat[20:23])
-new.mod.jul<-rowMeans(new.mod.dat[24:27])
-new.mod.aug<-rowMeans(new.mod.dat[28:31])
-new.mod.sep<-rowMeans(new.mod.dat[32:35])
-new.mod.oct<-rowMeans(new.mod.dat[36:38])
-new.mod.nov<-rowMeans(new.mod.dat[39:42])
-new.mod.dec<-rowMeans(new.mod.dat[43:46])
-
-
-new.mod.month<-data.frame(cbind(new.mod.jan,new.mod.feb,new.mod.mar,new.mod.apr,new.mod.may,new.mod.jun,
-                            new.mod.jul,new.mod.aug,new.mod.sep,new.mod.oct,new.mod.nov,new.mod.dec))
-
-new.mod.win<-rowMeans(new.mod.month[,c(1:2, 12)], na.rm=TRUE)
-new.mod.spr<-rowMeans(new.mod.month[,3:5], na.rm=TRUE)
-new.mod.sum<-rowMeans(new.mod.month[,6:8], na.rm=TRUE)
-new.mod.fal<-rowMeans(new.mod.month[,9:11], na.rm=TRUE)
-
-new.mod.seas<-cbind(new.mod.win,new.mod.spr,new.mod.sum,new.mod.fal)
-#####
-
-#Modern plots ####
-for (i in 1:12){
-  plot(y=dat.month[,i], x=new.mod.month[,i], main=monthlab[i], ylim=c(0.1,0.7), xlim=c(0.1,0.7),
-       ylab='MODIS', xlab='Lowess', col=colvec)
-  print(summary(lm(dat.month[,i]~new.mod.month[,i]))$r.squared)
-  abline(0,1, col='black')
-}
-
-for (i in 1:4){
-
-  plot(y=dat.seas[,i], x=new.mod.seas[,i], main=seaslab[i], ylim=c(0,0.7), xlim=c(0,0.7),
-       ylab='', xlab='',col=colvec, font=2, font.lab=2, pch='.')
-  #ylab='MODIS', xlab='Lowess',
-  abline(0,1, col='black')
-  box(lwd=2)
-}
-
-#####
-#Fuzzify paleo####
-
-pal.input<-read.csv('Albedo_Paleo_v2.csv', skip=7); pal.input<-pal.input[2:nrow(pal.input),]
-pal.dat<-pal.input[,7:ncol(pal.input)]
-pal.dat[pal.dat>1]<-NA;pal.dat[pal.dat<0.01]<-NA
-
-
-source('VegConvert_UTM.R')
-pal.vegcov<-paleo.veg
-new.pal<-pal.dat
-
-for(i in 1:46){
-  for(v in (unique(pal.vegcov)[!is.na(unique(pal.vegcov))])){
-
-    pal.l<-pal.dat[which(pal.vegcov==v),i]
-    pal.fuzz<-pal.l+rnorm(length(pal.l), 0, adjstore[v,i])
-
-    new.pal[which(pal.vegcov==v),i]<-pal.fuzz
-  }
-  }
-
+# # ##Original Ends here; this version adds normal noise to bring model variation closer to data variation
+# #
+# library(MASS)
+# 
+# new.mod<-mod
+# adjstore<-matrix(0,14,46)
+# par(mfrow=c(2,2))
+# 
+# #Loop for adding noise
+# for(i in 1:46){ #Big loop for adding noise
+#   for(v in (unique(vegtype)[!is.na(unique(vegtype))])){
+# 
+#     if(v!=26){
+# 
+#     dat.l<-dat[which(vegtype==v), i]
+#     mod.l<-mod[which(vegtype==v),i]
+# 
+#     lim<-c(min(dat.l, na.rm=TRUE), max(dat.l, na.rm=TRUE))
+# 
+#     #hist(dat.l, xlim=lim)
+#     #hist(mod.l, xlim=lim)
+# 
+#     modfit<-fitdistr(mod.l[!is.na(mod.l)], 'normal')$estimate
+#     datfit<-fitdistr(dat.l[!is.na(dat.l)], 'normal')$estimate
+# 
+#     adj<-datfit[2]-modfit[2]
+#     if(unname(adj)>0){
+#     adjstore[v,i]<-adj
+# 
+#     modc<-mod.l+rnorm(length(mod.l),0, 2*adj)
+#   }else(modc<-mod.l)
+#     hist(dat.l, xlim=lim)
+#     hist(modc, xlim=lim)
+# 
+#     new.mod[which(vegtype==v), i]<-modc
+#     }
+# 
+#   }
+# }
+# 
+# ##Monthify new modern:####
+# 
+# new.mod.dat<-new.mod
+# 
+# new.mod.jan<-rowMeans(new.mod.dat[1:4])
+# new.mod.feb<-rowMeans(new.mod.dat[5:8])
+# new.mod.mar<-rowMeans(new.mod.dat[9:12])
+# new.mod.apr<-rowMeans(new.mod.dat[13:15])
+# new.mod.may<-rowMeans(new.mod.dat[16:19])
+# new.mod.jun<-rowMeans(new.mod.dat[20:23])
+# new.mod.jul<-rowMeans(new.mod.dat[24:27])
+# new.mod.aug<-rowMeans(new.mod.dat[28:31])
+# new.mod.sep<-rowMeans(new.mod.dat[32:35])
+# new.mod.oct<-rowMeans(new.mod.dat[36:38])
+# new.mod.nov<-rowMeans(new.mod.dat[39:42])
+# new.mod.dec<-rowMeans(new.mod.dat[43:46])
+# 
+# 
+# new.mod.month<-data.frame(cbind(new.mod.jan,new.mod.feb,new.mod.mar,new.mod.apr,new.mod.may,new.mod.jun,
+#                             new.mod.jul,new.mod.aug,new.mod.sep,new.mod.oct,new.mod.nov,new.mod.dec))
+# 
+# new.mod.win<-rowMeans(new.mod.month[,c(1:2, 12)], na.rm=TRUE)
+# new.mod.spr<-rowMeans(new.mod.month[,3:5], na.rm=TRUE)
+# new.mod.sum<-rowMeans(new.mod.month[,6:8], na.rm=TRUE)
+# new.mod.fal<-rowMeans(new.mod.month[,9:11], na.rm=TRUE)
+# 
+# new.mod.seas<-cbind(new.mod.win,new.mod.spr,new.mod.sum,new.mod.fal)
+# #####
+# 
+# #Modern plots ####
+# for (i in 1:12){
+#   plot(y=dat.month[,i], x=new.mod.month[,i], main=monthlab[i], ylim=c(0.1,0.7), xlim=c(0.1,0.7),
+#        ylab='MODIS', xlab='Lowess', col=colvec)
+#   print(summary(lm(dat.month[,i]~new.mod.month[,i]))$r.squared)
+#   abline(0,1, col='black')
+# }
+# 
+# for (i in 1:4){
+# 
+#   plot(y=dat.seas[,i], x=new.mod.seas[,i], main=seaslab[i], ylim=c(0,0.7), xlim=c(0,0.7),
+#        ylab='', xlab='',col=colvec, font=2, font.lab=2, pch='.')
+#   #ylab='MODIS', xlab='Lowess',
+#   abline(0,1, col='black')
+#   box(lwd=2)
+# }
+# 
+# #####
+# #Fuzzify paleo####
+# 
+# pal.input<-read.csv('Samp100_pal.csv', skip=7); pal.input<-pal.input[2:nrow(pal.input),]
+# pal.dat<-pal.input[,7:ncol(pal.input)]
+# pal.dat[pal.dat>1]<-NA;pal.dat[pal.dat<0.01]<-NA
+# 
+# 
+# source('VegConvert_UTM.R')
+# pal.vegcov<-paleo.veg
+# new.pal<-pal.dat
+# 
+# for(i in 1:46){
+#   for(v in (unique(pal.vegcov)[!is.na(unique(pal.vegcov))])){
+# 
+#     pal.l<-pal.dat[which(pal.vegcov==v),i]
+#     pal.fuzz<-pal.l+rnorm(length(pal.l), 0, 2*adjstore[v,i])
+# 
+#     new.pal[which(pal.vegcov==v),i]<-pal.fuzz
+#   }
+#   }
+# 

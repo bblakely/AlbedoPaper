@@ -91,13 +91,13 @@ lab.albveg<-expression(Veg~alpha)
 lab.albsnow<-expression(Snow~alpha)
 labloc<-barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann))
 
-barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann), col=c("gray","forest green","light blue","dark blue"), 
+barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann), col=c("gray","forest green","gray30","dark blue"), 
         font=2, ylim=c(-3.5,1), cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE)
 
 abline(h=seq(from=-3,to=0.8,by=0.5), lty=2,col='light gray')
 
-barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann), col=c("gray","forest green","light blue","dark blue"), 
+barplot(c(alb.ann,st.ann,snow.alb.ann,snow.st.ann), col=c("gray","forest green","gray30","dark blue"), 
         font=2,ylim=c(-3.5,1),cex.axis=2,cex.names=2, ylab='',
         cex.lab=2, font.axis=2, font.lab=2, axes=FALSE, add=T)
 
@@ -112,7 +112,7 @@ abline(h=0, lwd=3)
 box(lwd=3)
 
 dev.copy(png, filename="Figures/IndivBars.png", width=575, height=412); dev.off()
-
+# For non-grayscale, just replace dark gray w/light blue
 
 #### Combined Plots ####
 veg.comb<-alb.ann+st.ann
@@ -232,24 +232,24 @@ legend(6.5,-9,legend=c("Deforestation", "Composition"), fill=c('navajowhite1','d
 #Write
 dev.copy(png, filename="Figures/CombinedRF.png", width=410, height=350);dev.off()
 
-#As a big-ass TIFF
+#As a big-ass TIFF 
 par(mar=c(8,9,4,2))
-plot(comp.force, type='l', col='forest green', ylim=span, lwd=2, cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
+plot(comp.force, type='l', col='black', ylim=span, lwd=2,lty=3, cex.main=2.5, ylab="", xlab="",cex.lab=2.1,yaxt='n',xaxt='n',bty='n')
 axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axis=3, font=2, tick=FALSE, line=1)
 #axis(side=1,labels=c(1:12),at=c(1:12), cex.axis=1.5, font=2)
 axis(side=2, labels=seq(from=l.min, to=l.max, by=4), at=seq(from=l.min, to=l.max, by=4), cex.axis=3, font=2)
 mtext(side=1, text="Month", line=5, cex=3.5, font=2)
 mtext(side=2, text=ylab, line=4, cex=4, font=2)
-abline(h=0, col='red4', lty=2, lwd=5)
+abline(h=0, lty=3, lwd=4)
 box(lwd=5)
 #Deforest
-polygon(x=c(1:12,12:1),y=c(def.force+1.96*def.uncert,rev(def.force-1.96*def.uncert)),border=NA, col='navajowhite1')
-lines(def.force,  col='orange', ylim=c(-12, 1), lwd=5)
+polygon(x=c(1:12,12:1),y=c(def.force+1.96*def.uncert,rev(def.force-1.96*def.uncert)),border=NA, col='dark gray')
+lines(def.force,  col='black', lwd=5)
 #Comp shift
-polygon(x=c(1:12,12:1),y=c(comp.force+1.96*comp.uncert,rev(comp.force-1.96*comp.uncert)),border=NA, col='darkseagreen1')
-lines(comp.force,  col='forest green', lwd=5)
+polygon(x=c(1:12,12:1),y=c(comp.force+1.96*comp.uncert,rev(comp.force-1.96*comp.uncert)),border=NA, col='light gray')
+lines(comp.force,  col='black', lwd=5, lty=2)
 
-legend(6.5,-9,legend=c("Deforestation", "Composition"), fill=c('navajowhite1','darkseagreen1'),text.font=2, bty='n', cex=2, y.intersp=0.6)
+legend(6.5,-8,legend=c("Deforestation", "Composition"), lty=c(1,2), lwd=5, text.font=2, bty='n', cex=2, y.intersp=0.2, x.intersp=0.2)
 #Write
 dev.copy(tiff, filename="Figures/CombinedRF.tif", width=410*8, height=350*8, res=300);dev.off()
 
@@ -285,16 +285,16 @@ axis(side=1,labels=seq(from=1, to=12, by=2),at=seq(from=1, to=12, by=2), cex.axi
 axis(side=2, labels=seq(from=-lablim, to=lablim, by=1), at=seq(from=-lablim, to=lablim, by=1), cex.axis=3, font=2)
 mtext(side=1, text="Month", line=5, cex=3.5, font=2)
 mtext(side=2, text=ylab, line=4, cex=4, font=2)
-abline(h=0, col='red4', lty=2, lwd=5)
+abline(h=0, col='black', lty=3, lwd=5)
 box(lwd=5)
 #Deforest
-polygon(x=c(1:12,12:1),y=c(STChg.def.avg+1.96*uncertainty.def.st.temp,rev(STChg.def.avg-1.96*uncertainty.def.st.temp)),border=NA, col='navajowhite1')
-lines(STChg.def.avg,  col='orange', lwd=6)
+polygon(x=c(1:12,12:1),y=c(STChg.def.avg+1.96*uncertainty.def.st.temp,rev(STChg.def.avg-1.96*uncertainty.def.st.temp)),border=NA, col='dark gray')
+lines(STChg.def.avg,  col='black', lwd=5)
 #Compshift
-polygon(x=c(1:12,12:1),y=c(STChg.comp.avg+1.96*uncertainty.comp.st.temp,rev(STChg.comp.avg-1.96*uncertainty.comp.st.temp)),border=NA, col='darkseagreen1')
-lines(STChg.comp.avg,  col='forest green', lwd=6)
+polygon(x=c(1:12,12:1),y=c(STChg.comp.avg+1.96*uncertainty.comp.st.temp,rev(STChg.comp.avg-1.96*uncertainty.comp.st.temp)),border=NA, col='light gray')
+lines(STChg.comp.avg,  col='black', lwd=5, lty=2)
 
-legend(6.5,-0.7,legend=c("Deforestation", "Composition"), fill=c('navajowhite1','darkseagreen1'),text.font=2, bty='n', cex=2,y.intersp=0.6)
+legend(6.5,-0.4,legend=c("Deforestation", "Composition"), lty=c(1,2), lwd=5, text.font=2, bty='n', cex=2, y.intersp=0.2, x.intersp=0.2)
 
 dev.copy(tiff, filename="Figures/CombinedSTChange.tif", width=410*8, height=350*8, res=300);dev.off()
 

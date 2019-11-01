@@ -238,8 +238,9 @@ mean(rowMeans(forcing.px[,WinterDays], na.rm=TRUE), na.rm=TRUE)
 wnt.sno.ci<-sd(rowMeans(forcing.px[,WinterDays], na.rm=TRUE), na.rm=TRUE)*2
 print("st snow wnt interval");print(c(wnt.sno+wnt.sno.ci, wnt.sno-wnt.sno.ci))
 
-mean(rowMeans(forcing.px, na.rm=TRUE), na.rm=TRUE) #Annual forcing
-ann.sno.ci<-sd(rowMeans(forcing.px, na.rm=TRUE), na.rm=TRUE)*2
+forcing.px.pad<-cbind(forcing.px, matrix(data=0,nrow=nrow(forcing.px), ncol=5))
+mean(colMeans(forcing.px.pad, na.rm=TRUE), na.rm=TRUE) #Annual forcing
+ann.sno.ci<-sd(colMeans(forcing.px.pad, na.rm=TRUE), na.rm=TRUE)*2
 print("st snow ann interval");print(c(ann.sno+ann.sno.ci, ann.sno-ann.sno.ci))
 
 }
